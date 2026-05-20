@@ -302,4 +302,3 @@ tutorial_notebook.ipynb       # Introductory usage notebook
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
->>>>>>> c117ba927446f2735d6676161ba955f70bcdc316
