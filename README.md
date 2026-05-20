@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ApprOxiMate
 
 ApprOxiMate is a Python package for charge balancing inorganic chemical
