@@ -149,3 +149,6 @@ tutorial_notebook.ipynb       # Introductory usage notebook
 
 This project is licensed under the MIT License. See `LICENSE` for details.
 
+## Citation
+
+Please cite the usage of this package.
