@@ -23,6 +23,9 @@ descriptors.
 - Includes example notebooks for featurisation, exploratory analysis, model
   training, and result assessment.
 
+## Citation
+Please cite this package.
+
 ## Installation
 
 Clone the repository and install it in editable mode:
@@ -148,7 +151,3 @@ tutorial_notebook.ipynb       # Introductory usage notebook
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
-
-## Citation
-
-Please cite the usage of this package.
