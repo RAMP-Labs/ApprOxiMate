@@ -17,7 +17,7 @@ from typing import Dict, List, Union, Optional
 
 import os
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(PACKAGE_DIR, "data")
+DATA_DIR = os.path.join(PACKAGE_DIR, "Data")
 
 @dataclass
 class ElementState:
