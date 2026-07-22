@@ -7,11 +7,6 @@ from matplotlib.gridspec import GridSpec
 
 from matplotlib import font_manager as fm
 
-for f in fm.findSystemFonts():
-    if "Aptos" in f:
-        fm.fontManager.addfont(f)
-
-
 def apply_style():
     for f in fm.findSystemFonts():
         if "Aptos" in f:
