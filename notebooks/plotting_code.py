@@ -7,10 +7,30 @@ from matplotlib.gridspec import GridSpec
 
 from matplotlib import font_manager as fm
 
-def apply_style():
-    for f in fm.findSystemFonts():
-        if "Aptos" in f:
-            fm.fontManager.addfont(f)
+def apply_style(os_choice):
+    """
+    os_choice: 'windows' or 'linux'
+    """
+    if os_choice == 'windows':
+        base_font = 'Aptos'
+        math_it = 'Helvetica:italic'
+        math_bf = 'Helvetica:bold'
+        math_cal = 'Helvetica:italic'
+        math_sf = 'Aptos'
+
+    elif os_choice == 'linux':
+        base_font = 'Carlito'
+        math_it = 'Nimbus Sans:italic'
+        math_bf = 'Nimbus Sans:bold'
+        math_cal = 'Nimbus Sans:italic'
+        math_sf = 'Carlito'
+
+        for f in fm.findSystemFonts():
+            if "Carlito" in f:
+                fm.fontManager.addfont(f)
+
+    else:
+        raise ValueError("os_choice must be 'windows' or 'linux'")
 
     plt.rcParams.update({
         'font.size': 14,
@@ -19,10 +39,14 @@ def apply_style():
         'xtick.labelsize': 14,
         'ytick.labelsize': 14,
         'legend.fontsize': 14,
-        'font.family': ['Aptos'],
+        'font.family': [base_font],
         'mathtext.fontset': 'custom',
-        'mathtext.it': 'Helvetica:italic',
-        'mathtext.bf': 'Helvetica:bold',
+        'mathtext.rm': base_font,
+        'mathtext.it': math_it,
+        'mathtext.bf': math_bf,
+        'mathtext.cal': math_cal,
+        'mathtext.sf': math_sf,
+        'mathtext.tt': 'DejaVu Sans Mono',
         'lines.linewidth': 1.5,
         'lines.markersize': 4,
         'axes.linewidth': 1.5,
