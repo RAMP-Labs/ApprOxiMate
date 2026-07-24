@@ -1,3 +1,5 @@
+LICENSE
+README.md
 pyproject.toml
 approx/__init__.py
 approx/approximate.py
@@ -6,8 +8,6 @@ approx.egg-info/SOURCES.txt
 approx.egg-info/dependency_links.txt
 approx.egg-info/requires.txt
 approx.egg-info/top_level.txt
-approx/data/fixed_ox_states.csv
-approx/data/variable_ox_states_srps.csv
 approx/feature_engineering/__init__.py
 approx/feature_engineering/base.py
 approx/feature_engineering/electronegativity_features.py
