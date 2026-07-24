@@ -21,7 +21,6 @@ CollectionCode	HMS	StructuredFormula	StructureType	Authors	CellParameter	CellVol
 171935	C -1	Mn3 Zn Ca Si5 O15	MnSiO3-[aP50]	Nelson, W.R.; Griffen, D.T.	9.8719(4) 10.5262(4) 12.2214(5) 108.743(4) 103.728(4) 82.049(3)	1165.60	293.00	0.101325	2005	10	
 171936	C -1	Mn3 Zn Ca Si5 O15	MnSiO3-[aP50]	Nelson, W.R.; Griffen, D.T.	9.8905(3) 10.5423(3) 12.2294(4) 108.739(3) 103.773(3) 82.050(2)	1170.18	293.00	0.101325	2005	10	
 177798	P -1	(Co (H2 O)6)2 (Mn F4 (H2 O)2) (Mn F6)		Keerthisinghe, Navindra; Klepov, Vladislav V.; Zhang, Eric; Smith, Mark D.; Egodawatte, Shani; Foulger, Stephen H.; Zur Loye, Hans-Conrad	6.42130(10) 9.0116(2) 9.0253(2) 104.1026(8) 96.1201(8) 96.8142(8)	497.93	301.90	0.101325	2020	10	
-180735	C -1	Na0.60 (Mn2 O4) (D2 O) (H2 O)0.5	NaxMn2O4(H2O)1.5	Post, J.E.; Heaney, P.J.; Cho, Yun Chul	5.176(1) 2.8483(2) 7.347(1) 89.57(3) 103.20(2) 89.87(2)	105.45	298.00	0.101325	2011	10	
 200702	P -1	Ca Mn (H As O4)2 (H2 O)2		Catti, M.; Chiari, G.; Ferraris, G.	8.459(2) 7.613(1) 6.968(1) 82.21(1) 98.25(1) 95.86(2)	438.42	293.00	0.101325	1980	10	
 202742	P -1	Cu3 Mn2 F12 (H2 O)12	Cu4V2F12(H2O)12	Nunez, P.; Tressaud, A.; Darriet, J.; Hagenmuller, P.; Massa, W.; Kummer, S.; Babel, D.	7.568(1) 7.558(1) 8.168(1) 91.32 89.72 92.61	466.59	293.00	0.101325	1988	10	
 205206	P -1	(N H3 N H2)8 (Mn (H2 O) Cl4 (N H3 N H2))2 (Mn Cl6) Cl2		Chalmers, James E.; Srivastava, Anant Kumar; Dixey, Richard J.C.; Sivakumaran, Krrishna; Saines, Paul J.	7.5839(3) 9.1752(4) 15.0656(6) 89.821(4) 84.447(3) 75.697(4)	1010.82	293.00	0.101325	2019	10	

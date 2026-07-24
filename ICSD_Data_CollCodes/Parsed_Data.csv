@@ -920,7 +920,6 @@ R -3 m H,Ba2 La2 Mn (W2 O12),293.0,0.101325,trigonal,Ba2La2Mn(W2O12)
 R -3 c H,(La0.7 Ca0.13 Sr0.17) (Mn O3),300.0,0.101325,trigonal,(La0.7Ca0.13Sr0.17)(MnO3)
 P -3,Mn (Si F6) (H2 O)6,298.0,0.101325,trigonal,Mn(SiF6)(H2O)6
 R -3 m H,Li Ni0.8 Mn0.1 Co0.1 O2,293.0,0.101325,trigonal,LiNi0.8Mn0.1Co0.1O2
-R -3 m H,Mn (Si F6) (D2 O)6,293.0,0.101325,trigonal,Mn(SiF6)(D2O)6
 R -3 m H,Mn (Al0.65 Li0.33) O2 (O H)2,293.0,0.101325,trigonal,Mn(Al0.65Li0.33)O2(OH)2
 P 3 1 c,(Mg (H2 O)6)2 (Mn Cl6),293.0,0.101325,trigonal,(Mg(H2O)6)2(MnCl6)
 R -3 c H,(La0.85 Na0.12 K0.03) Mn O3,293.0,0.101325,trigonal,(La0.85Na0.12K0.03)MnO3
@@ -1476,7 +1475,6 @@ R -3 m H,Li (Ni0.33 Co0.33 Mn0.33) O2,293.0,0.101325,trigonal,Li(Ni0.33Co0.33Mn0
 R -3 c H,(La0.5 Sr0.5) ((Mn0.9 Ti0.1) O3),293.0,0.101325,trigonal,(La0.5Sr0.5)((Mn0.9Ti0.1)O3)
 R -3 c H,(La0.5 Sr0.5) ((Mn0.7 Ti0.3) O3),293.0,0.101325,trigonal,(La0.5Sr0.5)((Mn0.7Ti0.3)O3)
 R -3 c H,(La0.5 Sr0.5) ((Mn0.5 Ti0.5) O3),293.0,0.101325,trigonal,(La0.5Sr0.5)((Mn0.5Ti0.5)O3)
-R 3 H,K6 (Mn Mo9 O32) (H2 O)5.52,293.0,0.101325,trigonal,K6(MnMo9O32)(H2O)5.52
 R -3 m H,(Li0.975 Ni0.025) (Ni0.776 Li0.024 Co0.1 Mn0.1) O2,293.0,0.101325,trigonal,(Li0.975Ni0.025)(Ni0.776Li0.024Co0.1Mn0.1)O2
 R -3 m H,(Li0.961 Ni0.039) (Ni0.763 Li0.037 Co0.1 Mn0.1) O2,293.0,0.101325,trigonal,(Li0.961Ni0.039)(Ni0.763Li0.037Co0.1Mn0.1)O2
 R -3 m H,(Li0.951 Ni0.049) (Ni0.772 Li0.028 Co0.1 Mn0.1) O2,293.0,0.101325,trigonal,(Li0.951Ni0.049)(Ni0.772Li0.028Co0.1Mn0.1)O2
@@ -1585,7 +1583,6 @@ P -1,(Ag0.15 Na1.85) Mn2 (Mo O4)3,298.0,0.101325,triclinic,(Ag0.15Na1.85)Mn2(MoO
 C -1,(Mn0.915 Fe0.0021 Mg0.083) (Si O3),293.0,0.101325,triclinic,(Mn0.915Fe0.0021Mg0.083)(SiO3)
 C -1,Mn3 Zn Ca Si5 O15,293.0,0.101325,triclinic,Mn3ZnCaSi5O15
 P -1,(Co (H2 O)6)2 (Mn F4 (H2 O)2) (Mn F6),301.9,0.101325,triclinic,(Co(H2O)6)2(MnF4(H2O)2)(MnF6)
-C -1,Na0.60 (Mn2 O4) (D2 O) (H2 O)0.5,298.0,0.101325,triclinic,Na0.60(Mn2O4)(D2O)(H2O)0.5
 P -1,Ca Mn (H As O4)2 (H2 O)2,293.0,0.101325,triclinic,CaMn(HAsO4)2(H2O)2
 P -1,Cu3 Mn2 F12 (H2 O)12,293.0,0.101325,triclinic,Cu3Mn2F12(H2O)12
 P -1,(Mn3.00 Ca1.93 Fe0.84 Fe0.17) (Si5.94 Fe0.06) O18,293.0,0.101325,triclinic,(Mn3.00Ca1.93Fe0.84Fe0.17)(Si5.94Fe0.06)O18
