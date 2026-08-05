@@ -23,6 +23,11 @@ descriptors.
 - Includes example notebooks for featurisation, exploratory analysis, model
   training, and result assessment.
 
+## Standard Reduction Potential Data
+NIST dataset was used to collected SRP values used within the variable_ox_states_srps.csv 
+
+S. G. Bratsch, Standard Electrode Potentials and Temperature Coefficients in Water at 298.15 K, Journal of Physical and Chemical Reference Data, 1989, 18, 1–21.
+
 ## Citation
 Please cite this package.
 
