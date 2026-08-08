@@ -38,7 +38,7 @@ def apply_style(os_choice):
         'axes.titlesize': 16,
         'xtick.labelsize': 14,
         'ytick.labelsize': 14,
-        'legend.fontsize': 14,
+        'legend.fontsize': 12,
         'font.family': [base_font],
         'mathtext.fontset': 'custom',
         'mathtext.rm': base_font,
