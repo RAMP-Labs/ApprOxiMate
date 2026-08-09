@@ -141,6 +141,12 @@ The repository includes notebooks that demonstrate the main workflow:
 - `notebooks/exp3c_oliynyk_runML.ipynb`: comparison modelling with Oliynyk-style features.
 - `notebooks/exp4_assessing_models.ipynb`: model assessment and visualisation.
 
+Notebooks with `exp0_` in the front show multiple ways to use ApprOxiMate outside of feature engineering and machine learning. Such as:
+
+- `alkali_removal_notebook.ipynb`: Charge balance plots and theoretical oxidation state tracking.
+- `parity_plot_theo_cap.ipynb`: Adjust theoretical capacity calculations using ApprOxiMates charge balance assessment. 
+- `srp_analysis.ipynb`: Since the user is able to change the SRP data to what fits their needs, this notebook helps visualise this.
+
 ## Project Layout
 
 ```text
