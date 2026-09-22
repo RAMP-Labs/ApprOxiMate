@@ -159,6 +159,9 @@ website_widget/               # Interactive notebook widget prototype
 tutorial_notebook.ipynb       # Introductory usage notebook
 ```
 
+### Data Cleanup Note
+An earlier version of Parsed_Data.csv contained 2,302 raw entries. The current Parsed_Data.csv now has 2,299 raw entries as 3 formula were lost when transferred over to ICSD_CrystStrucData.csv. This 2,299 dataset was then preprocessed and cleaned resulting in a dataset of 2,283 entires as seen in `notebooks/exp1_featurisation.ipynb` these 16 formulas were removed due to numerical precision limits encountered when parsing and balancing large formula units and therfore were unable to be charge balanced successfully. 
+
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
