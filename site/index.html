@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ApprOxiMate: oxidation state calculator</title>
 <meta name="description" content="Composition-only mixed oxidation state estimation, running in your browser.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='80' font-family='Arial,sans-serif' font-weight='700' font-size='110' text-anchor='middle' fill='%23E36C2A'>≈</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -102,11 +102,15 @@
   .slider-field { flex: 2 1 300px; }
   input[type="range"] { width: 100%; accent-color: var(--orange); }
   .slider-meta { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-  #plot { width: 100%; max-width: 620px; aspect-ratio: 1 / 1; margin: 20px auto 0; }
+  .plots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+  .plot { width: 100%; aspect-ratio: 1 / 1; min-width: 0; }
 
   footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; }
   footer a { color: var(--purple); }
 
+  @media (max-width: 760px) {
+    .plots { grid-template-columns: 1fr; }
+  }
   @media (max-width: 600px) {
     .panel { padding: 18px; }
   }
@@ -163,7 +167,7 @@
 
   <!-- Plot -->
   <section role="tabpanel" id="panel-plot" aria-labelledby="tab-plot" class="panel" hidden>
-    <p class="lead">See how the final charge balance changes as the alkali metal is removed, from none up to the amount in your formula.</p>
+    <p class="lead">See how the charge balance and the individual transition-metal oxidation states change as the alkali metal is removed, from none up to the amount in your formula.</p>
     <div class="row">
       <div class="field">
         <label for="plot-formula">Formula</label>
@@ -180,7 +184,10 @@
       </div>
     </div>
     <div id="plot-msg" class="msg" aria-live="polite"></div>
-    <div id="plot"></div>
+    <div class="plots">
+      <div class="plot" id="plot-cb"></div>
+      <div class="plot" id="plot-ox"></div>
+    </div>
   </section>
 
   <footer>
@@ -253,7 +260,7 @@ function selectTab(tab) {
     t.tabIndex = on ? 0 : -1;
     $(t.getAttribute("aria-controls")).hidden = !on;
   });
-  if (tab.id === "tab-plot") { if (plotted) Plotly.Plots.resize("plot"); else drawPlot(); }
+  if (tab.id === "tab-plot") { if (plotted) PLOT_IDS.forEach((id) => Plotly.Plots.resize(id)); else drawPlot(); }
 }
 tabs.forEach((t, i) => {
   t.addEventListener("click", () => selectTab(t));
@@ -433,6 +440,31 @@ function updateSliderMeta() {
   $("max-val").textContent = a ? fmt(a.amount) : "";
 }
 
+const PLOT_IDS = ["plot-cb", "plot-ox"];
+const clearPlots = () => { PLOT_IDS.forEach((id) => Plotly.purge(id)); plotted = false; };
+
+// Inferno, sampled between 0.15 and 0.85 so no line is near-black or pale yellow on white
+const INFERNO = ["#000004","#160b39","#420a68","#6a176e","#932667","#bc3754","#dd513a","#f37819","#fca50a","#f6d746","#fcffa4"];
+function inferno(t) {
+  const p = t * (INFERNO.length - 1), i = Math.min(Math.floor(p), INFERNO.length - 2), f = p - i;
+  const c = (h, k) => parseInt(h.slice(1 + 2 * k, 3 + 2 * k), 16);
+  const mix = (k) => Math.round(c(INFERNO[i], k) + (c(INFERNO[i + 1], k) - c(INFERNO[i], k)) * f);
+  return `rgb(${mix(0)},${mix(1)},${mix(2)})`;
+}
+const infernoColors = (n) => Array.from({ length: n }, (_, i) => inferno(n === 1 ? 0.5 : 0.15 + 0.7 * i / (n - 1)));
+
+function baseLayout(title, alkali, amount) {
+  return {
+    title: { text: title, font: { size: 15, color: UCL.ink } },
+    xaxis: { title: { text: `${alkali} amount` }, range: [0, amount], gridcolor: UCL.line, zeroline: false },
+    yaxis: { gridcolor: UCL.line, zeroline: false, autorange: true },
+    paper_bgcolor: "#fff", plot_bgcolor: "#fff",
+    font: { family: '"Instrument Sans", Arial, sans-serif', color: UCL.ink, size: 12 },
+    legend: { orientation: "h", x: 0, xanchor: "left", y: 1.0, yanchor: "bottom", font: { size: 11 } },
+    margin: { l: 56, r: 12, t: 78, b: 50 },
+  };
+}
+
 function drawPlot() {
   if (!bridge || $("panel-plot").hidden) return;
   const msg = $("plot-msg");
@@ -440,29 +472,40 @@ function drawPlot() {
   if (!alkali) {
     msg.className = "msg error";
     msg.textContent = "No alkali metal (Li, Na, K, Rb or Cs) found in this formula.";
-    Plotly.purge("plot"); plotted = false; return;
+    clearPlots(); return;
   }
   const r = call("sweep", $("plot-formula").value, alkali, +$("intervals").value);
-  if (!r.ok) { msg.className = "msg error"; msg.textContent = r.error; Plotly.purge("plot"); plotted = false; return; }
+  if (!r.ok) { msg.className = "msg error"; msg.textContent = r.error; clearPlots(); return; }
   msg.textContent = "";
+  const markerSize = r.x.length > 80 ? 4 : 6;
+  const config = { responsive: true, displaylogo: false };
 
-  const traces = [
-    { x: r.x, y: r.y, mode: "lines+markers", name: "Final charge balance",
-      line: { color: UCL.orange, width: 2.5 }, marker: { color: UCL.purple, size: r.x.length > 80 ? 4 : 7 },
+  // Left: final charge balance
+  const cbTraces = [
+    { x: r.x, y: r.y, mode: "lines+markers", name: "Charge balance",
+      line: { color: UCL.orange, width: 2.5 }, marker: { color: UCL.purple, size: markerSize },
       hovertemplate: `${alkali} = %{x:.4f}<br>Charge = %{y:.4f}<extra></extra>` },
     { x: [0, r.amount], y: [0, 0], mode: "lines", name: "Charge neutral",
       line: { color: UCL.purple, width: 1.5, dash: "dash" }, hoverinfo: "skip" },
   ];
-  const layout = {
-    title: { text: `Charge balance vs ${alkali} content: ${esc($("plot-formula").value.trim())}`, font: { size: 17, color: UCL.ink } },
-    xaxis: { title: { text: `${alkali} amount (formula units)` }, range: [0, r.amount], gridcolor: UCL.line, zeroline: false },
-    yaxis: { title: { text: "Final charge balance" }, gridcolor: UCL.line, zeroline: false },
-    paper_bgcolor: "#fff", plot_bgcolor: "#fff",
-    font: { family: '"Instrument Sans", Arial, sans-serif', color: UCL.ink },
-    legend: { orientation: "h", x: 1, xanchor: "right", y: 1.02, yanchor: "bottom" },
-    margin: { l: 64, r: 20, t: 70, b: 56 },
-  };
-  Plotly.react("plot", traces, layout, { responsive: true, displaylogo: false });
+  const cbLayout = baseLayout("Charge balance", alkali, r.amount);
+  cbLayout.yaxis.title = { text: "Final charge balance" };
+  Plotly.react("plot-cb", cbTraces, cbLayout, config);
+
+  // Right: amount of each variable oxidation state (fixed states, alkali and O excluded in bridge.py)
+  const colors = infernoColors(r.states.length);
+  const oxTraces = r.states.map((st, i) => ({
+    x: r.x, y: st.y, mode: "lines+markers", name: `${st.el}<sup>${chargeStr(st.ox)}</sup>`,
+    line: { color: colors[i], width: 2 }, marker: { color: colors[i], size: markerSize },
+    hovertemplate: `${st.el}${chargeStr(st.ox)}<br>${alkali} = %{x:.4f}<br>Amount = %{y:.4f}<extra></extra>`,
+  }));
+  const oxLayout = baseLayout("Individual oxidation states", alkali, r.amount);
+  oxLayout.yaxis.title = { text: "Amount per formula unit" };
+  if (!oxTraces.length) {
+    oxLayout.annotations = [{ text: "No variable oxidation states in this formula", showarrow: false,
+      xref: "paper", yref: "paper", x: 0.5, y: 0.5, font: { color: UCL.ink } }];
+  }
+  Plotly.react("plot-ox", oxTraces, oxLayout, config);
   plotted = true;
 }
 

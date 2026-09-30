@@ -89,14 +89,35 @@ def sweep(formula, alkali, n_intervals):
         return json.dumps({"ok": False, "error": f"{alkali} not found in formula"})
 
     n = max(1, int(n_intervals))
-    xs, ys = [], []
+    skip = set(ALKALI_METALS) | {"O"}
+    xs, ys, rows = [], [], []
     for k in range(n + 1):
         x = round(amount * k / n, 6)  # exact endpoints, no arange float drift
         try:
             r = _analyzer.charge_balance({**parsed, alkali: x}, return_format="dict")
-            y = _clean(r["final_charge"]) if r else None
         except Exception:
-            y = None
+            r = None
         xs.append(x)
-        ys.append(y)
-    return json.dumps({"ok": True, "x": xs, "y": ys, "amount": float(amount), "step": amount / n})
+        ys.append(_clean(r["final_charge"]) if r else None)
+        # Variable oxidation states only (alkali metals, O and fixed states excluded)
+        row = None
+        if r:
+            row = {}
+            for el, states in _states(r).items():
+                if el in skip:
+                    continue
+                for st in states:
+                    if not st["fixed"]:
+                        key = (el, st["ox"])
+                        row[key] = row.get(key, 0.0) + (st["qty"] or 0.0)
+        rows.append(row)
+
+    # One series per (element, oxidation state) seen anywhere in the sweep.
+    # A state absent at a given x is 0 there; a failed calculation is None.
+    keys = sorted({key for row in rows if row for key in row})
+    states = [
+        {"el": el, "ox": ox, "y": [None if row is None else row.get((el, ox), 0.0) for row in rows]}
+        for el, ox in keys
+    ]
+    return json.dumps({"ok": True, "x": xs, "y": ys, "states": states,
+                       "amount": float(amount), "step": amount / n})
