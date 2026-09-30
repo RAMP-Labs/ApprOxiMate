@@ -35,7 +35,6 @@
   header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
   h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
   h1 .ox { color: var(--orange); }
-  h1 .m { color: var(--purple); }
   .tagline { margin: 8px 0 0; color: var(--muted); font-size: 1.05rem; }
   .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--purple-soft); font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); animation: pulse 1.2s ease-in-out infinite; }
@@ -103,14 +102,13 @@
   .slider-field { flex: 2 1 300px; }
   input[type="range"] { width: 100%; accent-color: var(--orange); }
   .slider-meta { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-  #plot { width: 100%; height: 460px; margin-top: 20px; }
+  #plot { width: 100%; max-width: 620px; aspect-ratio: 1 / 1; margin: 20px auto 0; }
 
   footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; }
   footer a { color: var(--purple); }
 
   @media (max-width: 600px) {
     .panel { padding: 18px; }
-    #plot { height: 360px; }
   }
   @media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
 </style>
@@ -119,7 +117,7 @@
 <main>
   <header>
     <div>
-      <h1>Appr<span class="ox">Ox</span>i<span class="m">M</span>ate</h1>
+      <h1>Appr<span class="ox">Oxi</span>Mate</h1>
       <p class="tagline">Estimate mixed oxidation states from composition alone.</p>
     </div>
     <div class="status" id="status" role="status"><span class="dot"></span><span id="status-text">Loading calculation engine…</span></div>
@@ -275,7 +273,7 @@ function renderSingle() {
   let chips = "", rows = "";
   for (const [el, states] of Object.entries(r.elements)) {
     for (const s of states) {
-      chips += `<span class="ion${s.fixed ? "" : " var"}">${esc(el)}<sup>${chargeStr(s.ox)}</sup><span class="qty">×${fmt(s.qty)}</span></span>`;
+      chips += `<span class="ion${s.fixed ? "" : " var"}">${esc(el)}<sup>${chargeStr(s.ox)}</sup><span class="qty">${fmt(s.qty)}</span></span>`;
       rows += `<tr><td>${esc(el)}</td><td>${s.ox > 0 ? "+" : ""}${s.ox}</td><td>${fmt(s.qty)}</td><td>${s.fixed ? "Fixed" : "Variable"}</td><td>${s.srp === null ? "" : fmt(s.srp, 3)}</td></tr>`;
     }
   }
