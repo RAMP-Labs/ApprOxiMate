@@ -1,4 +1,4 @@
-name: Deploy widget to GitHub Pages
+name: Deploy ApprOxiMate site to GitHub Pages
 
 on:
   push:
@@ -20,37 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      # Build-time tools + the JS extensions for widgets and Plotly
-      - name: Install build tools
-        run: pip install voici-core "jupyterlite-pyodide-kernel==0.7.0" ipywidgets plotly
-
-      # Notebook becomes index.ipynb; approx package sits beside it so imports work
-      - name: Stage site content
+      # The site is plain static files: the UI from site/, plus the
+      # approx engine files that Pyodide loads in the browser.
+      - name: Stage site
         run: |
-          mkdir -p site_content
-          cp website_widget/approximate_widgets.ipynb site_content/index.ipynb
-          cp -r approx site_content/approx
-          find site_content -name '__pycache__' -prune -exec rm -rf {} +
-          rm -f site_content/approx/*.cs
-          # Point the notebook at the in-browser Pyodide kernel
-          python - <<'EOF'
-          import json
-          p = "site_content/index.ipynb"
-          nb = json.load(open(p))
-          nb["metadata"]["kernelspec"] = {
-              "name": "python",
-              "display_name": "Python (Pyodide)",
-              "language": "python",
-          }
-          json.dump(nb, open(p, "w"), indent=1)
-          EOF
-
-      - name: Build static site
-        run: voici build --contents site_content --output-dir dist
+          mkdir -p dist/approx/Data
+          cp site/index.html site/bridge.py dist/
+          cp approx/approximate.py dist/approx/
+          cp approx/Data/*.csv dist/approx/Data/
+          touch dist/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3
         with:

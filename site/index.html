@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ApprOxiMate: oxidation state calculator</title>
+<meta name="description" content="Composition-only mixed oxidation state estimation, running in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #E36C2A;
+    --orange-dark: #C4561A;
+    --purple: #993AFF;
+    --purple-soft: #F3EAFF;
+    --ink: #3A1857;
+    --muted: #6E5A82;
+    --bg: #FAFAFA;
+    --panel: #FFFFFF;
+    --line: #E4DCEE;
+    --ok: #2E8B57;
+    --bad: #C0392B;
+    --radius: 10px;
+    font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); line-height: 1.5; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  /* Header */
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  h1 .ox { color: var(--orange); }
+  h1 .m { color: var(--purple); }
+  .tagline { margin: 8px 0 0; color: var(--muted); font-size: 1.05rem; }
+  .status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--purple-soft); font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); animation: pulse 1.2s ease-in-out infinite; }
+  .status.ready .dot { background: var(--ok); animation: none; }
+  .status.error .dot { background: var(--bad); animation: none; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  /* Tabs */
+  [role="tablist"] { display: flex; gap: 4px; border-bottom: 2px solid var(--line); margin-bottom: 24px; overflow-x: auto; }
+  [role="tab"] { appearance: none; border: 0; background: none; font: inherit; font-weight: 600; font-size: 1rem; color: var(--muted); padding: 12px 18px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+  [role="tab"][aria-selected="true"] { color: var(--purple); border-bottom-color: var(--purple); }
+  [role="tab"]:hover { color: var(--ink); }
+  [role="tabpanel"][hidden] { display: none; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .panel p.lead { margin: 0 0 20px; color: var(--muted); max-width: 70ch; }
+
+  /* Controls */
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 220px; }
+  .field.narrow { flex: 0 1 160px; }
+  label { font-weight: 600; font-size: 0.92rem; }
+  input[type="text"], select { font: inherit; font-size: 1rem; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+  input[type="text"]:focus, select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-soft); }
+  button.primary, a.btn { appearance: none; font: inherit; font-weight: 600; font-size: 1rem; padding: 10px 20px; border-radius: 8px; border: 0; background: var(--orange); color: #fff; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  button.primary:hover:not(:disabled), a.btn:hover { background: var(--orange-dark); }
+  button.primary:disabled { background: #D9CFE3; color: #fff; cursor: not-allowed; }
+  button.secondary { appearance: none; font: inherit; font-weight: 600; padding: 9px 18px; border-radius: 8px; border: 1.5px solid var(--purple); background: #fff; color: var(--purple); cursor: pointer; }
+  button.secondary:hover { background: var(--purple-soft); }
+  :focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+
+  .msg { margin-top: 16px; font-weight: 500; }
+  .msg.error { color: var(--bad); }
+  .msg.ok { color: var(--ok); }
+
+  /* Single result */
+  .result-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 24px 0 14px; }
+  .result-head h2 { margin: 0; font-size: 1.5rem; }
+  .badge { font-size: 0.85rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .badge.ok { background: #E3F4EA; color: var(--ok); }
+  .badge.bad { background: #FBE6E3; color: var(--bad); }
+  .ions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .ion { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 14px; font-size: 1.25rem; font-weight: 600; background: #fff; }
+  .ion sup { font-size: 0.7em; color: var(--orange); margin-left: 1px; }
+  .ion.var sup { color: var(--purple); }
+  .ion .qty { font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-left: 6px; }
+
+  /* Tables */
+  .table-wrap { overflow: auto; max-height: 480px; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+  th { position: sticky; top: 0; background: var(--purple); color: #fff; text-align: left; padding: 9px 12px; font-weight: 600; white-space: nowrap; }
+  td { padding: 8px 12px; border-top: 1px solid var(--line); white-space: nowrap; }
+  tr:nth-child(even) td { background: #FBF8FE; }
+  td.fail { color: var(--bad); }
+
+  /* File drop */
+  .drop { border: 2px dashed var(--line); border-radius: var(--radius); padding: 28px; text-align: center; cursor: pointer; background: #fff; }
+  .drop.over, .drop:hover { border-color: var(--orange); background: #FFF6F0; }
+  .drop strong { color: var(--orange); }
+  .drop .fname { margin-top: 8px; color: var(--muted); font-size: 0.92rem; }
+  .downloads { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 14px; align-items: center; }
+  .summary { color: var(--muted); font-size: 0.92rem; }
+
+  /* Plot */
+  .slider-field { flex: 2 1 300px; }
+  input[type="range"] { width: 100%; accent-color: var(--orange); }
+  .slider-meta { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #plot { width: 100%; height: 460px; margin-top: 20px; }
+
+  footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; }
+  footer a { color: var(--purple); }
+
+  @media (max-width: 600px) {
+    .panel { padding: 18px; }
+    #plot { height: 360px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Appr<span class="ox">Ox</span>i<span class="m">M</span>ate</h1>
+      <p class="tagline">Estimate mixed oxidation states from composition alone.</p>
+    </div>
+    <div class="status" id="status" role="status"><span class="dot"></span><span id="status-text">Loading calculation engine…</span></div>
+  </header>
+
+  <div role="tablist" aria-label="Calculator modes">
+    <button role="tab" id="tab-single" aria-controls="panel-single" aria-selected="true">Single composition</button>
+    <button role="tab" id="tab-batch" aria-controls="panel-batch" aria-selected="false" tabindex="-1">Batch from file</button>
+    <button role="tab" id="tab-plot" aria-controls="panel-plot" aria-selected="false" tabindex="-1">Charge balance plot</button>
+  </div>
+
+  <!-- Single composition -->
+  <section role="tabpanel" id="panel-single" aria-labelledby="tab-single" class="panel">
+    <p class="lead">Enter a formula to get the oxidation state of each element.</p>
+    <form class="row" id="single-form" onsubmit="return false">
+      <div class="field">
+        <label for="single-formula">Formula</label>
+        <input type="text" id="single-formula" value="Na0.67Ni0.33Mn0.67O2" autocomplete="off" spellcheck="false">
+      </div>
+      <button class="primary needs-engine" id="single-btn" type="submit" disabled>Calculate</button>
+    </form>
+    <div id="single-out" aria-live="polite"></div>
+  </section>
+
+  <!-- Batch -->
+  <section role="tabpanel" id="panel-batch" aria-labelledby="tab-batch" class="panel" hidden>
+    <p class="lead">Upload a CSV or Excel file (.csv, .xlsx, .xls) with one formula per row. Your file stays on your computer; it is processed in this browser tab.</p>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a file">
+      <div><strong>Choose a file</strong> or drag it here</div>
+      <div class="fname" id="fname">No file selected</div>
+      <input type="file" id="file" accept=".csv,.xlsx,.xls" hidden>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <div class="field">
+        <label for="col">Column with formulas</label>
+        <select id="col" disabled><option>Upload a file first</option></select>
+      </div>
+      <button class="primary needs-engine" id="batch-btn" disabled>Calculate all</button>
+    </div>
+    <div id="batch-msg" class="msg" aria-live="polite"></div>
+    <div id="batch-out"></div>
+  </section>
+
+  <!-- Plot -->
+  <section role="tabpanel" id="panel-plot" aria-labelledby="tab-plot" class="panel" hidden>
+    <p class="lead">See how the final charge balance changes as the alkali metal is removed, from none up to the amount in your formula.</p>
+    <div class="row">
+      <div class="field">
+        <label for="plot-formula">Formula</label>
+        <input type="text" id="plot-formula" value="NaFeO2" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field narrow">
+        <label for="alkali">Alkali metal</label>
+        <select id="alkali"></select>
+      </div>
+      <div class="field slider-field">
+        <label for="intervals">Intervals: <span id="intervals-val">50</span></label>
+        <input type="range" id="intervals" min="5" max="200" step="1" value="50">
+        <div class="slider-meta"><span>0</span><span id="step-val"></span><span id="max-val"></span></div>
+      </div>
+    </div>
+    <div id="plot-msg" class="msg" aria-live="polite"></div>
+    <div id="plot"></div>
+  </section>
+
+  <footer>
+    Calculations run locally with <a href="https://pyodide.org">Pyodide</a> using the ApprOxiMate Python package.
+    Source on <a href="https://github.com/RAMP-Labs/ApprOxiMate">GitHub</a>.
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.29.5/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script>
+"use strict";
+const UCL = { orange: "#E36C2A", purple: "#993AFF", ink: "#3A1857", line: "#E4DCEE" };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (x, d = 4) => (x === null || x === undefined || Number.isNaN(x)) ? "" : String(+Number(x).toFixed(d));
+const chargeStr = (ox) => ox === 0 ? "0" : `${Math.abs(ox)}${ox > 0 ? "+" : "−"}`;
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+/* ---------- Engine (Pyodide + ApprOxiMate) ---------- */
+let bridge = null;
+const call = (fn, ...args) => JSON.parse(bridge[fn](...args));
+
+// Deployed site has approx/ next to index.html; local dev (served from repo root) has it one level up.
+async function fetchFirst(paths) {
+  for (const p of paths) {
+    try { const r = await fetch(p); if (r.ok) return await r.text(); } catch (_) {}
+  }
+  throw new Error(`Could not load ${paths[0]}`);
+}
+
+async function initEngine() {
+  const setStatus = (text, cls) => { $("status-text").textContent = text; $("status").className = "status " + (cls || ""); };
+  try {
+    const pyodide = await loadPyodide();
+    setStatus("Loading pandas…");
+    await pyodide.loadPackage("pandas");
+    setStatus("Loading ApprOxiMate…");
+    const files = {
+      "approx/approximate.py": ["approx/approximate.py", "../approx/approximate.py"],
+      "approx/Data/fixed_ox_states.csv": ["approx/Data/fixed_ox_states.csv", "../approx/Data/fixed_ox_states.csv"],
+      "approx/Data/variable_ox_states_srps.csv": ["approx/Data/variable_ox_states_srps.csv", "../approx/Data/variable_ox_states_srps.csv"],
+      "bridge.py": ["bridge.py"],
+    };
+    pyodide.FS.mkdirTree("/home/pyodide/approx/Data");
+    for (const [dest, srcs] of Object.entries(files)) {
+      pyodide.FS.writeFile("/home/pyodide/" + dest, await fetchFirst(srcs));
+    }
+    pyodide.FS.writeFile("/home/pyodide/approx/__init__.py", "");
+    pyodide.runPython("import sys; sys.path.insert(0, '/home/pyodide')");
+    bridge = pyodide.pyimport("bridge");
+    setStatus("Ready", "ready");
+    document.querySelectorAll(".needs-engine").forEach((b) => (b.disabled = false));
+    updateBatchButton();
+    refreshAlkali();
+    drawPlot();
+  } catch (err) {
+    console.error(err);
+    setStatus("Engine failed to load. Refresh to retry.", "error");
+  }
+}
+
+/* ---------- Tabs ---------- */
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(tab) {
+  tabs.forEach((t) => {
+    const on = t === tab;
+    t.setAttribute("aria-selected", on);
+    t.tabIndex = on ? 0 : -1;
+    $(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  if (tab.id === "tab-plot") { if (plotted) Plotly.Plots.resize("plot"); else drawPlot(); }
+}
+tabs.forEach((t, i) => {
+  t.addEventListener("click", () => selectTab(t));
+  t.addEventListener("keydown", (e) => {
+    const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; selectTab(n); n.focus(); }
+  });
+});
+
+/* ---------- Tab 1: single composition ---------- */
+function renderSingle() {
+  const formula = $("single-formula").value.trim();
+  const out = $("single-out");
+  const r = call("single", formula);
+  if (!r.ok) { out.innerHTML = `<p class="msg error">${esc(r.error)}</p>`; return; }
+
+  let chips = "", rows = "";
+  for (const [el, states] of Object.entries(r.elements)) {
+    for (const s of states) {
+      chips += `<span class="ion${s.fixed ? "" : " var"}">${esc(el)}<sup>${chargeStr(s.ox)}</sup><span class="qty">×${fmt(s.qty)}</span></span>`;
+      rows += `<tr><td>${esc(el)}</td><td>${s.ox > 0 ? "+" : ""}${s.ox}</td><td>${fmt(s.qty)}</td><td>${s.fixed ? "Fixed" : "Variable"}</td><td>${s.srp === null ? "" : fmt(s.srp, 3)}</td></tr>`;
+    }
+  }
+  const badge = r.balanced
+    ? `<span class="badge ok">Charge balanced</span>`
+    : `<span class="badge bad">Not balanced: ${fmt(r.final)}</span>`;
+  out.innerHTML = `
+    <div class="result-head"><h2>${esc(formula)}</h2>${badge}</div>
+    <div class="ions">${chips}</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Element</th><th>Oxidation state</th><th>Quantity</th><th>Type</th><th>SRP (V)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+$("single-form").addEventListener("submit", () => bridge && renderSingle());
+
+/* ---------- Tab 2: batch from CSV / Excel ---------- */
+let batchRows = null, batchHeaders = null, batchName = "results", batchResult = null;
+
+function pickFile(file) {
+  if (!file) return;
+  $("fname").textContent = file.name;
+  batchName = file.name.replace(/\.[^.]+$/, "");
+  $("batch-out").innerHTML = ""; $("batch-msg").textContent = "";
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: true });
+      if (!grid.length) throw new Error("The file is empty");
+      batchHeaders = grid[0].map((h, i) => (String(h).trim() || `Column ${i + 1}`));
+      batchRows = grid.slice(1).filter((r) => r.some((c) => String(c).trim() !== ""));
+      const guess = batchHeaders.findIndex((h) => /^(composition|formula)s?$/i.test(h));
+      $("col").innerHTML = batchHeaders.map((h, i) => `<option value="${i}"${i === Math.max(guess, 0) ? " selected" : ""}>${esc(h)}</option>`).join("");
+      $("col").disabled = false;
+      $("batch-msg").className = "msg";
+      $("batch-msg").textContent = `${batchRows.length} rows found${wb.SheetNames.length > 1 ? ` in sheet "${wb.SheetNames[0]}"` : ""}.`;
+    } catch (err) {
+      batchRows = null;
+      $("col").disabled = true;
+      $("batch-msg").className = "msg error";
+      $("batch-msg").textContent = `Could not read this file: ${err.message}`;
+    }
+    updateBatchButton();
+  };
+  reader.readAsArrayBuffer(file);
+}
+function updateBatchButton() { $("batch-btn").disabled = !(bridge && batchRows && batchRows.length); }
+
+const drop = $("drop");
+drop.addEventListener("click", () => $("file").click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file").click(); } });
+$("file").addEventListener("change", (e) => pickFile(e.target.files[0]));
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => pickFile(e.dataTransfer.files[0]));
+
+// Same column logic as the notebook widget:
+// one column per element+oxidation state found anywhere (e.g. "Ni+2"), sorted;
+// for each row, columns of elements present start at 0 and get filled;
+// columns of elements absent from that composition stay empty.
+function buildBatchTable(headers, rows, colIdx, results) {
+  const combos = new Set();
+  results.forEach((r) => { if (r.ok) for (const [el, sts] of Object.entries(r.elements)) sts.forEach((s) => combos.add(el + (s.ox >= 0 ? "+" : "") + s.ox)); });
+  const comboList = [...combos].sort();
+  const anyFail = results.some((r) => !r.ok);
+  const outHeaders = [...headers, ...comboList, "Final_Charge_Balance", ...(anyFail ? ["Error"] : [])];
+
+  const outRows = rows.map((row, i) => {
+    const r = results[i];
+    const base = headers.map((_, j) => (row[j] === undefined ? "" : row[j]));
+    const vals = Object.fromEntries(comboList.map((c) => [c, ""]));
+    if (r.ok) {
+      for (const [el, sts] of Object.entries(r.elements)) {
+        comboList.forEach((c) => { if (c.startsWith(el) && /^[+-]/.test(c.slice(el.length))) vals[c] = 0; });
+        sts.forEach((s) => { const c = el + (s.ox >= 0 ? "+" : "") + s.ox; vals[c] = +(Number(vals[c] || 0) + s.qty).toFixed(10); });
+      }
+    }
+    return [...base, ...comboList.map((c) => vals[c]), r.ok ? r.final : "", ...(anyFail ? [r.ok ? "" : r.error] : [])];
+  });
+  return { headers: outHeaders, rows: outRows, nCombos: comboList.length, nFail: results.filter((r) => !r.ok).length };
+}
+
+$("batch-btn").addEventListener("click", () => {
+  const colIdx = +$("col").value;
+  const formulas = batchRows.map((r) => String(r[colIdx] ?? "").trim());
+  $("batch-msg").className = "msg"; $("batch-msg").textContent = "Calculating…";
+  $("batch-btn").disabled = true;
+  setTimeout(() => { // let the "Calculating…" message paint before the engine blocks
+    try {
+      const results = call("batch", JSON.stringify(formulas));
+      batchResult = buildBatchTable(batchHeaders, batchRows, colIdx, results);
+      renderBatch(batchResult);
+      const ok = formulas.length - batchResult.nFail;
+      $("batch-msg").className = batchResult.nFail ? "msg error" : "msg ok";
+      $("batch-msg").textContent = `Processed ${ok} of ${formulas.length} rows` + (batchResult.nFail ? `. ${batchResult.nFail} could not be processed; see the Error column.` : ".");
+    } catch (err) {
+      console.error(err);
+      $("batch-msg").className = "msg error"; $("batch-msg").textContent = `Calculation failed: ${err.message}`;
+    }
+    updateBatchButton();
+  }, 30);
+});
+
+function renderBatch(t) {
+  const PREVIEW = 200;
+  const head = t.headers.map((h) => `<th>${esc(h)}</th>`).join("");
+  const errCol = t.headers.indexOf("Error");
+  const body = t.rows.slice(0, PREVIEW).map((r) => "<tr>" + r.map((c, j) => `<td${j === errCol && c ? ' class="fail"' : ""}>${esc(typeof c === "number" ? fmt(c, 6) : c)}</td>`).join("") + "</tr>").join("");
+  $("batch-out").innerHTML = `
+    <div class="downloads">
+      <button class="primary" id="dl-csv">Download CSV</button>
+      <button class="secondary" id="dl-xlsx">Download Excel</button>
+      <span class="summary">${t.rows.length} rows, ${t.nCombos} oxidation state columns${t.rows.length > PREVIEW ? `, showing first ${PREVIEW}` : ""}</span>
+    </div>
+    <div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+  $("dl-csv").onclick = () => download("csv");
+  $("dl-xlsx").onclick = () => download("xlsx");
+}
+
+function download(kind) {
+  const ws = XLSX.utils.aoa_to_sheet([batchResult.headers, ...batchResult.rows]);
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "");
+  const name = `${batchName}_oxidation_states_${stamp}.${kind}`;
+  if (kind === "csv") {
+    const blob = new Blob([XLSX.utils.sheet_to_csv(ws)], { type: "text/csv;charset=utf-8" });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } else {
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Oxidation states");
+    XLSX.writeFile(wb, name);
+  }
+}
+
+/* ---------- Tab 3: charge balance vs alkali amount ---------- */
+let plotted = false, currentAlkali = [];
+
+// Alkali dropdown follows the formula: only metals actually in it, with their amounts.
+function refreshAlkali() {
+  if (!bridge) return;
+  const prev = $("alkali").value;
+  currentAlkali = call("alkali_in", $("plot-formula").value);
+  $("alkali").innerHTML = currentAlkali.length
+    ? currentAlkali.map((a) => `<option value="${a.el}">${a.el} (${fmt(a.amount)})</option>`).join("")
+    : `<option value="">None found</option>`;
+  $("alkali").disabled = !currentAlkali.length;
+  if (currentAlkali.some((a) => a.el === prev)) $("alkali").value = prev;
+  updateSliderMeta();
+}
+
+function updateSliderMeta() {
+  const n = +$("intervals").value;
+  $("intervals-val").textContent = n;
+  const a = currentAlkali.find((x) => x.el === $("alkali").value);
+  $("step-val").textContent = a ? `step ${fmt(a.amount / n, 4)}` : "";
+  $("max-val").textContent = a ? fmt(a.amount) : "";
+}
+
+function drawPlot() {
+  if (!bridge || $("panel-plot").hidden) return;
+  const msg = $("plot-msg");
+  const alkali = $("alkali").value;
+  if (!alkali) {
+    msg.className = "msg error";
+    msg.textContent = "No alkali metal (Li, Na, K, Rb or Cs) found in this formula.";
+    Plotly.purge("plot"); plotted = false; return;
+  }
+  const r = call("sweep", $("plot-formula").value, alkali, +$("intervals").value);
+  if (!r.ok) { msg.className = "msg error"; msg.textContent = r.error; Plotly.purge("plot"); plotted = false; return; }
+  msg.textContent = "";
+
+  const traces = [
+    { x: r.x, y: r.y, mode: "lines+markers", name: "Final charge balance",
+      line: { color: UCL.orange, width: 2.5 }, marker: { color: UCL.purple, size: r.x.length > 80 ? 4 : 7 },
+      hovertemplate: `${alkali} = %{x:.4f}<br>Charge = %{y:.4f}<extra></extra>` },
+    { x: [0, r.amount], y: [0, 0], mode: "lines", name: "Charge neutral",
+      line: { color: UCL.purple, width: 1.5, dash: "dash" }, hoverinfo: "skip" },
+  ];
+  const layout = {
+    title: { text: `Charge balance vs ${alkali} content: ${esc($("plot-formula").value.trim())}`, font: { size: 17, color: UCL.ink } },
+    xaxis: { title: { text: `${alkali} amount (formula units)` }, range: [0, r.amount], gridcolor: UCL.line, zeroline: false },
+    yaxis: { title: { text: "Final charge balance" }, gridcolor: UCL.line, zeroline: false },
+    paper_bgcolor: "#fff", plot_bgcolor: "#fff",
+    font: { family: '"Instrument Sans", Arial, sans-serif', color: UCL.ink },
+    legend: { orientation: "h", x: 1, xanchor: "right", y: 1.02, yanchor: "bottom" },
+    margin: { l: 64, r: 20, t: 70, b: 56 },
+  };
+  Plotly.react("plot", traces, layout, { responsive: true, displaylogo: false });
+  plotted = true;
+}
+
+const onFormulaChange = debounce(() => { refreshAlkali(); drawPlot(); }, 400);
+$("plot-formula").addEventListener("input", onFormulaChange);
+$("alkali").addEventListener("change", () => { updateSliderMeta(); drawPlot(); });
+$("intervals").addEventListener("input", updateSliderMeta);   // live label while dragging
+$("intervals").addEventListener("change", drawPlot);           // recompute on release
+
+initEngine();
+</script>
+</body>
+</html>
