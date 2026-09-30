@@ -105,6 +105,18 @@
   .plots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
   .plot { width: 100%; aspect-ratio: 1 / 1; min-width: 0; }
 
+  .cap-grid { display: grid; grid-template-columns: minmax(0, 560px) minmax(200px, 1fr); gap: 24px; margin-top: 20px; align-items: start; }
+  .cap-grid[hidden] { display: none; }
+  .stats { display: grid; gap: 12px; }
+  .stat { border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+  .stat .v { font-size: 1.6rem; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .stat .v small { font-size: 0.9rem; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .stat .k { font-size: 0.9rem; color: var(--muted); }
+  .stat.hl { border-color: var(--orange); }
+  .stat.hl .v { color: var(--orange); }
+  .note { font-size: 0.85rem; color: var(--muted); margin: 4px 0 0; }
+  @media (max-width: 760px) { .cap-grid { grid-template-columns: 1fr; } }
+
   footer { margin-top: 40px; color: var(--muted); font-size: 0.9rem; }
   footer a { color: var(--purple); }
 
@@ -131,6 +143,7 @@
     <button role="tab" id="tab-single" aria-controls="panel-single" aria-selected="true">Single composition</button>
     <button role="tab" id="tab-batch" aria-controls="panel-batch" aria-selected="false" tabindex="-1">Batch from file</button>
     <button role="tab" id="tab-plot" aria-controls="panel-plot" aria-selected="false" tabindex="-1">Charge balance plot</button>
+    <button role="tab" id="tab-cap" aria-controls="panel-cap" aria-selected="false" tabindex="-1">Capacity</button>
   </div>
 
   <!-- Single composition -->
@@ -190,6 +203,26 @@
     </div>
   </section>
 
+  <!-- Capacity -->
+  <section role="tabpanel" id="panel-cap" aria-labelledby="tab-cap" class="panel" hidden>
+    <p class="lead">Compare the theoretical capacity, where all of the alkali metal comes out, with the capacity allowed by charge balance, where removal stops once the transition metals can no longer compensate.</p>
+    <div class="row">
+      <div class="field">
+        <label for="cap-formula">Formula</label>
+        <input type="text" id="cap-formula" value="Na0.67Ni0.33Mn0.67O2" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field narrow">
+        <label for="cap-alkali">Alkali metal</label>
+        <select id="cap-alkali"></select>
+      </div>
+    </div>
+    <div id="cap-msg" class="msg" aria-live="polite"></div>
+    <div class="cap-grid" id="cap-body">
+      <div class="plot" id="plot-cap"></div>
+      <div class="stats" id="cap-stats"></div>
+    </div>
+  </section>
+
   <footer>
     Calculations run locally with <a href="https://pyodide.org">Pyodide</a> using the ApprOxiMate Python package.
     Source on <a href="https://github.com/RAMP-Labs/ApprOxiMate">GitHub</a>.
@@ -245,6 +278,8 @@ async function initEngine() {
     updateBatchButton();
     refreshAlkali();
     drawPlot();
+    refreshCapAlkali();
+    drawCapacity();
   } catch (err) {
     console.error(err);
     setStatus("Engine failed to load. Refresh to retry.", "error");
@@ -261,6 +296,7 @@ function selectTab(tab) {
     $(t.getAttribute("aria-controls")).hidden = !on;
   });
   if (tab.id === "tab-plot") { if (plotted) PLOT_IDS.forEach((id) => Plotly.Plots.resize(id)); else drawPlot(); }
+  if (tab.id === "tab-cap") { refreshCapAlkali(); drawCapacity(); }
 }
 tabs.forEach((t, i) => {
   t.addEventListener("click", () => selectTab(t));
@@ -514,6 +550,66 @@ $("plot-formula").addEventListener("input", onFormulaChange);
 $("alkali").addEventListener("change", () => { updateSliderMeta(); drawPlot(); });
 $("intervals").addEventListener("input", updateSliderMeta);   // live label while dragging
 $("intervals").addEventListener("change", drawPlot);           // recompute on release
+
+/* ---------- Tab 4: theoretical vs adjusted capacity ---------- */
+function refreshCapAlkali() {
+  if (!bridge) return;
+  const sel = $("cap-alkali"), prev = sel.value;
+  const found = call("alkali_in", $("cap-formula").value);
+  sel.innerHTML = found.length
+    ? found.map((a) => `<option value="${a.el}">${a.el} (${fmt(a.amount)})</option>`).join("")
+    : `<option value="">None found</option>`;
+  sel.disabled = !found.length;
+  if (found.some((a) => a.el === prev)) sel.value = prev;
+}
+
+function drawCapacity() {
+  if (!bridge || $("panel-cap").hidden) return;
+  const msg = $("cap-msg"), alkali = $("cap-alkali").value;
+  const fail = (text) => {
+    msg.className = "msg error"; msg.textContent = text;
+    $("cap-body").hidden = true; Plotly.purge("plot-cap");
+  };
+  if (!alkali) return fail("No alkali metal (Li, Na, K, Rb or Cs) found in this formula.");
+  const r = call("capacity", $("cap-formula").value, alkali);
+  if (!r.ok) return fail(r.error);
+  msg.textContent = ""; $("cap-body").hidden = false;
+
+  // Capacity vs alkali remaining. Theoretical is linear in alkali removed;
+  // adjusted follows it until charge balance breaks, then stays at Q_adj.
+  const theoX = [r.full, 0], theoY = [0, r.q_max];
+  const adjX = [r.full, r.remaining_at_limit, 0], adjY = [0, r.q_adj, r.q_adj];
+  const limited = r.removable < r.full - 1e-9;
+  const traces = [
+    { x: theoX, y: theoY, mode: "lines", name: "Theoretical",
+      line: { color: plasma(0.7), width: 2, dash: "dash" },
+      hovertemplate: `${alkali} = %{x:.3f}<br>Q = %{y:.1f} mAh/g<extra>Theoretical</extra>` },
+    { x: adjX, y: adjY, mode: "lines", name: "Adjusted (charge balanced)",
+      line: { color: plasma(0.2), width: 3 },
+      hovertemplate: `${alkali} = %{x:.3f}<br>Q = %{y:.1f} mAh/g<extra>Adjusted</extra>` },
+  ];
+  if (limited) {
+    traces.push({ x: [r.remaining_at_limit], y: [r.q_adj], mode: "markers", name: "Charge balance limit",
+      marker: { color: plasma(0.45), size: 11, line: { color: "#fff", width: 2 } },
+      hovertemplate: `Limit at ${alkali} = %{x:.3f}<br>Q<sub>adj</sub> = %{y:.1f} mAh/g<extra></extra>` });
+  }
+  const layout = baseLayout("Capacity vs alkali content", alkali, r.full);
+  layout.yaxis.title = { text: "Capacity (mAh g<sup>−1</sup>)" };
+  layout.yaxis.rangemode = "tozero";
+  Plotly.react("plot-cap", traces, layout, { responsive: true, displaylogo: false });
+
+  const pct = r.q_max ? (100 * r.q_adj / r.q_max) : 0;
+  $("cap-stats").innerHTML = `
+    <div class="stat"><div class="v">${r.q_max.toFixed(1)}<small>mAh g⁻¹</small></div><div class="k">Theoretical capacity, Q<sub>max</sub></div></div>
+    <div class="stat hl"><div class="v">${r.q_adj.toFixed(1)}<small>mAh g⁻¹</small></div><div class="k">Adjusted capacity, Q<sub>adj</sub> (${pct.toFixed(0)}% of Q<sub>max</sub>)</div></div>
+    <div class="stat"><div class="v">${fmt(r.removable, 2)}<small>of ${fmt(r.full, 2)} ${esc(alkali)}</small></div><div class="k">Alkali removable while charge balanced</div></div>
+    <div class="stat"><div class="v">${r.molar_mass.toFixed(2)}<small>g mol⁻¹</small></div><div class="k">Molar mass of starting formula</div></div>
+    <p class="note">Q = x·F / (3.6·M). Removal is checked in steps of 0.01 ${esc(alkali)}.</p>`;
+}
+
+const onCapFormulaChange = debounce(() => { refreshCapAlkali(); drawCapacity(); }, 400);
+$("cap-formula").addEventListener("input", onCapFormulaChange);
+$("cap-alkali").addEventListener("change", drawCapacity);
 
 initEngine();
 </script>
