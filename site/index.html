@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ApprOxiMate: oxidation state calculator</title>
 <meta name="description" content="Composition-only mixed oxidation state estimation, running in your browser.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='80' font-family='Arial,sans-serif' font-weight='700' font-size='110' text-anchor='middle' fill='%23E36C2A'>≈</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='80' font-family='Arial,sans-serif' font-weight='700' font-size='110' text-anchor='middle' fill='%23e55c30'>≈</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --orange: #E36C2A;
-    --orange-dark: #C4561A;
-    --purple: #993AFF;
+    --orange: #e55c30;
+    --orange-dark: #C4461F;
+    --purple: #993bff;
     --purple-soft: #F3EAFF;
     --ink: #3A1857;
     --muted: #6E5A82;
@@ -234,7 +234,7 @@
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
 <script>
 "use strict";
-const UCL = { orange: "#E36C2A", purple: "#993AFF", ink: "#3A1857", line: "#E4DCEE" };
+const UCL = { orange: "#e55c30", purple: "#993bff", ink: "#3A1857", line: "#E4DCEE" };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (x, d = 4) => (x === null || x === undefined || Number.isNaN(x)) ? "" : String(+Number(x).toFixed(d));
@@ -479,15 +479,23 @@ function updateSliderMeta() {
 const PLOT_IDS = ["plot-cb", "plot-ox"];
 const clearPlots = () => { PLOT_IDS.forEach((id) => Plotly.purge(id)); plotted = false; };
 
-// Plasma colour map, used by both plots. Sampled between 0.1 and 0.85 so no line is pale yellow on white.
-const PLASMA = ["#0d0887","#41049d","#6a00a8","#8f0da4","#b12a90","#cc4778","#e16462","#f2844b","#fca636","#fcce25","#f0f921"];
-function plasma(t) {
-  const p = t * (PLASMA.length - 1), i = Math.min(Math.floor(p), PLASMA.length - 2), f = p - i;
+// Plot palette built from the UCL colours: ink -> purple -> orange -> yellow.
+const PAL = { ink: "#3A1857", purple: "#993bff", orange: "#e55c30", yellow: "#fbbe23" };
+const RAMP = [PAL.ink, PAL.purple, PAL.orange, PAL.yellow];
+function ramp(t) {
+  const p = Math.max(0, Math.min(1, t)) * (RAMP.length - 1);
+  const i = Math.min(Math.floor(p), RAMP.length - 2), f = p - i;
   const c = (h, k) => parseInt(h.slice(1 + 2 * k, 3 + 2 * k), 16);
-  const mix = (k) => Math.round(c(PLASMA[i], k) + (c(PLASMA[i + 1], k) - c(PLASMA[i], k)) * f);
+  const mix = (k) => Math.round(c(RAMP[i], k) + (c(RAMP[i + 1], k) - c(RAMP[i], k)) * f);
   return `rgb(${mix(0)},${mix(1)},${mix(2)})`;
 }
-const plasmaColors = (n) => Array.from({ length: n }, (_, i) => plasma(n === 1 ? 0.5 : 0.1 + 0.75 * i / (n - 1)));
+// Up to 3 series use purple / orange / yellow directly; 4+ sample the full ramp from ink.
+function seriesColors(n) {
+  if (n <= 1) return [PAL.purple];
+  if (n === 2) return [PAL.purple, PAL.orange];
+  if (n === 3) return [PAL.purple, PAL.orange, PAL.yellow];
+  return Array.from({ length: n }, (_, i) => ramp(i / (n - 1)));
+}
 
 function baseLayout(title, alkali, amount) {
   return {
@@ -519,17 +527,17 @@ function drawPlot() {
   // Left: final charge balance
   const cbTraces = [
     { x: r.x, y: r.y, mode: "lines+markers", name: "Charge balance",
-      line: { color: plasma(0.2), width: 2.5 }, marker: { color: plasma(0.2), size: markerSize },
+      line: { color: PAL.purple, width: 2.5 }, marker: { color: PAL.purple, size: markerSize },
       hovertemplate: `${alkali} = %{x:.4f}<br>Charge = %{y:.4f}<extra></extra>` },
     { x: [0, r.amount], y: [0, 0], mode: "lines", name: "Charge neutral",
-      line: { color: plasma(0.7), width: 1.5, dash: "dash" }, hoverinfo: "skip" },
+      line: { color: PAL.orange, width: 1.5, dash: "dash" }, hoverinfo: "skip" },
   ];
   const cbLayout = baseLayout("Charge balance", alkali, r.amount);
   cbLayout.yaxis.title = { text: "Final charge balance" };
   Plotly.react("plot-cb", cbTraces, cbLayout, config);
 
   // Right: amount of each variable oxidation state (fixed states, alkali and O excluded in bridge.py)
-  const colors = plasmaColors(r.states.length);
+  const colors = seriesColors(r.states.length);
   const oxTraces = r.states.map((st, i) => ({
     x: r.x, y: st.y, mode: "lines+markers", name: `${st.el}<sup>${chargeStr(st.ox)}</sup>`,
     line: { color: colors[i], width: 2 }, marker: { color: colors[i], size: markerSize },
@@ -582,15 +590,15 @@ function drawCapacity() {
   const limited = r.removable < r.full - 1e-9;
   const traces = [
     { x: theoX, y: theoY, mode: "lines", name: "Theoretical",
-      line: { color: plasma(0.7), width: 2, dash: "dash" },
+      line: { color: PAL.orange, width: 2, dash: "dash" },
       hovertemplate: `${alkali} = %{x:.3f}<br>Q = %{y:.1f} mAh/g<extra>Theoretical</extra>` },
     { x: adjX, y: adjY, mode: "lines", name: "Adjusted (charge balanced)",
-      line: { color: plasma(0.2), width: 3 },
+      line: { color: PAL.purple, width: 3 },
       hovertemplate: `${alkali} = %{x:.3f}<br>Q = %{y:.1f} mAh/g<extra>Adjusted</extra>` },
   ];
   if (limited) {
     traces.push({ x: [r.remaining_at_limit], y: [r.q_adj], mode: "markers", name: "Charge balance limit",
-      marker: { color: plasma(0.45), size: 11, line: { color: "#fff", width: 2 } },
+      marker: { color: PAL.yellow, size: 12, line: { color: PAL.ink, width: 1.5 } },
       hovertemplate: `Limit at ${alkali} = %{x:.3f}<br>Q<sub>adj</sub> = %{y:.1f} mAh/g<extra></extra>` });
   }
   const layout = baseLayout("Capacity vs alkali content", alkali, r.full);
