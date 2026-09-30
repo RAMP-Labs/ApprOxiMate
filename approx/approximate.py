@@ -95,6 +95,7 @@ class ApprOXimate:
         if fixed_ox_states_path is None:
             fixed_ox_states_path = os.path.join(DATA_DIR, "fixed_ox_states.csv")
         
+        self.csv_file_path = csv_file_path
         self.load_chemical_data(csv_file_path, fixed_ox_states_path)
     
     def precise_round(self, value, decimals=None):
@@ -528,7 +529,7 @@ class ApprOXimate:
         # If element was moved from variable to fixed, we need to reload and check
         # This handles the case where an element exists in both files
         try:
-            df = pd.read_csv("variable_ox_states_srps.csv")
+            df = pd.read_csv(self.csv_file_path)
             element_data = df[df['Element'] == element]
             for _, row in element_data.iterrows():
                 if oxidation_state < 0:
