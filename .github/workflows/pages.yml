@@ -36,6 +36,18 @@ jobs:
           cp -r approx site_content/approx
           find site_content -name '__pycache__' -prune -exec rm -rf {} +
           rm -f site_content/approx/*.cs
+          # Point the notebook at the in-browser Pyodide kernel
+          python - <<'EOF'
+          import json
+          p = "site_content/index.ipynb"
+          nb = json.load(open(p))
+          nb["metadata"]["kernelspec"] = {
+              "name": "python",
+              "display_name": "Python (Pyodide)",
+              "language": "python",
+          }
+          json.dump(nb, open(p, "w"), indent=1)
+          EOF
 
       - name: Build static site
         run: voici build --contents site_content --output-dir dist
