@@ -443,15 +443,15 @@ function updateSliderMeta() {
 const PLOT_IDS = ["plot-cb", "plot-ox"];
 const clearPlots = () => { PLOT_IDS.forEach((id) => Plotly.purge(id)); plotted = false; };
 
-// Inferno, sampled between 0.15 and 0.85 so no line is near-black or pale yellow on white
-const INFERNO = ["#000004","#160b39","#420a68","#6a176e","#932667","#bc3754","#dd513a","#f37819","#fca50a","#f6d746","#fcffa4"];
-function inferno(t) {
-  const p = t * (INFERNO.length - 1), i = Math.min(Math.floor(p), INFERNO.length - 2), f = p - i;
+// Plasma colour map, used by both plots. Sampled between 0.1 and 0.85 so no line is pale yellow on white.
+const PLASMA = ["#0d0887","#41049d","#6a00a8","#8f0da4","#b12a90","#cc4778","#e16462","#f2844b","#fca636","#fcce25","#f0f921"];
+function plasma(t) {
+  const p = t * (PLASMA.length - 1), i = Math.min(Math.floor(p), PLASMA.length - 2), f = p - i;
   const c = (h, k) => parseInt(h.slice(1 + 2 * k, 3 + 2 * k), 16);
-  const mix = (k) => Math.round(c(INFERNO[i], k) + (c(INFERNO[i + 1], k) - c(INFERNO[i], k)) * f);
+  const mix = (k) => Math.round(c(PLASMA[i], k) + (c(PLASMA[i + 1], k) - c(PLASMA[i], k)) * f);
   return `rgb(${mix(0)},${mix(1)},${mix(2)})`;
 }
-const infernoColors = (n) => Array.from({ length: n }, (_, i) => inferno(n === 1 ? 0.5 : 0.15 + 0.7 * i / (n - 1)));
+const plasmaColors = (n) => Array.from({ length: n }, (_, i) => plasma(n === 1 ? 0.5 : 0.1 + 0.75 * i / (n - 1)));
 
 function baseLayout(title, alkali, amount) {
   return {
@@ -483,17 +483,17 @@ function drawPlot() {
   // Left: final charge balance
   const cbTraces = [
     { x: r.x, y: r.y, mode: "lines+markers", name: "Charge balance",
-      line: { color: UCL.orange, width: 2.5 }, marker: { color: UCL.purple, size: markerSize },
+      line: { color: plasma(0.2), width: 2.5 }, marker: { color: plasma(0.2), size: markerSize },
       hovertemplate: `${alkali} = %{x:.4f}<br>Charge = %{y:.4f}<extra></extra>` },
     { x: [0, r.amount], y: [0, 0], mode: "lines", name: "Charge neutral",
-      line: { color: UCL.purple, width: 1.5, dash: "dash" }, hoverinfo: "skip" },
+      line: { color: plasma(0.7), width: 1.5, dash: "dash" }, hoverinfo: "skip" },
   ];
   const cbLayout = baseLayout("Charge balance", alkali, r.amount);
   cbLayout.yaxis.title = { text: "Final charge balance" };
   Plotly.react("plot-cb", cbTraces, cbLayout, config);
 
   // Right: amount of each variable oxidation state (fixed states, alkali and O excluded in bridge.py)
-  const colors = infernoColors(r.states.length);
+  const colors = plasmaColors(r.states.length);
   const oxTraces = r.states.map((st, i) => ({
     x: r.x, y: st.y, mode: "lines+markers", name: `${st.el}<sup>${chargeStr(st.ox)}</sup>`,
     line: { color: colors[i], width: 2 }, marker: { color: colors[i], size: markerSize },
