@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p dist/approximate/Data
           cp site/index.html site/bridge.py dist/
-          cp approximate/core.py dist/approximate/
+          cp approximate/core.py approximate/capacity.py dist/approximate/
           cp approximate/Data/*.csv dist/approximate/Data/
           touch dist/.nojekyll
 

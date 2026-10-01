@@ -3,6 +3,7 @@
     from approximate import charge_balance
     r = charge_balance("Fe3O4")
 """
+from .capacity import CapacityResult, capacity, molar_mass
 from .core import (
     BalanceResult,
     ElementState,
@@ -19,6 +20,9 @@ __all__ = [
     "oxidation_states",
     "final_charge",
     "parse_formula",
+    "capacity",
+    "molar_mass",
+    "CapacityResult",
     "BalanceResult",
     "ElementState",
 ]
