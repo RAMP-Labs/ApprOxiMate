@@ -4,6 +4,7 @@
     r = charge_balance("Fe3O4")
 """
 from .capacity import CapacityResult, capacity, molar_mass
+from .sweep import SweepResult, alkali_sweep
 from .core import (
     BalanceResult,
     ElementState,
@@ -23,6 +24,8 @@ __all__ = [
     "capacity",
     "molar_mass",
     "CapacityResult",
+    "alkali_sweep",
+    "SweepResult",
     "BalanceResult",
     "ElementState",
 ]
