@@ -24,16 +24,13 @@ def get_result(formula):
     or None if the formula can't be handled.
     """
     # ---- current API (update this block after the refactor) ----
-    from approx.approximate import ApprOXimate
-    analyzer = ApprOXimate()
-    d = analyzer.charge_balance(formula, return_format="dict")
-    if d is None:
+    from approx.approximate import charge_balance
+    r = charge_balance(formula)
+    if r is None:
         return None
-    states = []
-    for el, info in d["elements"].items():
-        for s in info.get("states", [info]):
-            states.append([el, s["oxidation_state"], s["quantity"]])
-    string = analyzer.charge_balance(formula, return_format="string")
+    states = [[s.element, s.oxidation_state, s.quantity] for s in r.oxidation_states]
+    d = {"final_charge": r.final_charge, "is_balanced": r.is_balanced}
+    string = str(r)
     # -------------------------------------------------------------
     return {
         "states": sorted(states),

@@ -12,32 +12,19 @@ class FeatureModule:
             },
         )
 
-    def parse_result(self, result_dict):
+    def parse_result(self, result):
         all_elems = []
         var_elems = []
-
-        for el, data in result_dict["elements"].items():
-            if "states" in data:
-                for st in data["states"]:
-                    ox, qty, fixed = st["oxidation_state"], st["quantity"], st["is_fixed"]
-                    all_elems.append((el, ox, qty))
-                    if not fixed:
-                        var_elems.append((el, ox, qty))
-            else:
-                ox, qty, fixed = data["oxidation_state"], data["quantity"], data["is_fixed"]
-                all_elems.append((el, ox, qty))
-                if not fixed:
-                    var_elems.append((el, ox, qty))
-
+        for st in result.oxidation_states:
+            all_elems.append((st.element, st.oxidation_state, st.quantity))
+            if not st.is_fixed:
+                var_elems.append((st.element, st.oxidation_state, st.quantity))
         return all_elems, var_elems
 
     def get_balance_result(self, formula):
         balance_cache = self._shared_cache["balance"]
         if formula not in balance_cache:
-            balance_cache[formula] = self.approx.charge_balance(
-                formula,
-                return_format="dict",
-            )
+            balance_cache[formula] = self.approx.charge_balance(formula)
         return balance_cache[formula]
 
     def get_parsed_elements(self, formula):
