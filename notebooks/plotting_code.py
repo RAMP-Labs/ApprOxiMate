@@ -1,6 +1,6 @@
 import sys, os
 
-from approx import approximate
+from approximate import core
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec

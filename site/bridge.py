@@ -1,15 +1,14 @@
 """Thin JSON bridge between the web UI and ApprOxiMate.
 
-All chemistry happens in approx.approximate; this file only converts
+All chemistry happens in approximate.core; this file only converts
 results to JSON-friendly structures for the JavaScript front end.
 """
 import json
 import math
 
-from approx.approximate import ApprOXimate
+from approximate.core import charge_balance, parse_formula
 
 ALKALI_METALS = ["Li", "Na", "K", "Rb", "Cs"]
-_analyzer = ApprOXimate()
 
 
 def _clean(x):
@@ -21,19 +20,15 @@ def _clean(x):
 
 
 def _states(result):
-    """Flatten ApprOxiMate's dict output to {element: [state, ...]}."""
+    """Group a BalanceResult's oxidation states as {element: [state, ...]}."""
     out = {}
-    for element, data in result["elements"].items():
-        states = data["states"] if "states" in data else [data]
-        out[element] = [
-            {
-                "ox": int(s["oxidation_state"]),
-                "qty": _clean(s["quantity"]),
-                "fixed": bool(s.get("is_fixed", False)),
-                "srp": _clean(s.get("srp")),
-            }
-            for s in states
-        ]
+    for s in result.oxidation_states:
+        out.setdefault(s.element, []).append({
+            "ox": int(s.oxidation_state),
+            "qty": _clean(s.quantity),
+            "fixed": bool(s.is_fixed),
+            "srp": _clean(s.srp),
+        })
     return out
 
 
@@ -42,16 +37,16 @@ def _balance(formula):
     if not formula:
         return {"ok": False, "error": "Empty formula"}
     try:
-        result = _analyzer.charge_balance(formula, return_format="dict")
+        result = charge_balance(formula)
     except Exception as e:  # keep the UI alive on bad input
         return {"ok": False, "error": f"Could not process formula: {e}"}
-    if result is None or not result.get("elements"):
+    if result is None or not result.oxidation_states:
         return {"ok": False, "error": "Could not recognise any elements in this formula"}
     return {
         "ok": True,
         "elements": _states(result),
-        "final": _clean(result["final_charge"]),
-        "balanced": bool(result["is_balanced"]),
+        "final": _clean(result.final_charge),
+        "balanced": bool(result.is_balanced),
     }
 
 
@@ -66,7 +61,7 @@ def batch(formulas_json):
 def alkali_in(formula):
     """Alkali metals present in the formula, with their amounts."""
     try:
-        parsed = _analyzer.parse_formula(str(formula).strip()) or {}
+        parsed = parse_formula(str(formula).strip()) or {}
     except Exception:
         parsed = {}
     return json.dumps(
@@ -81,7 +76,7 @@ def sweep(formula, alkali, n_intervals):
     split into n_intervals equal steps (n_intervals + 1 points, both ends included).
     """
     try:
-        parsed = _analyzer.parse_formula(str(formula).strip()) or {}
+        parsed = parse_formula(str(formula).strip()) or {}
     except Exception as e:
         return json.dumps({"ok": False, "error": f"Could not parse formula: {e}"})
     amount = parsed.get(alkali, 0)
@@ -94,11 +89,11 @@ def sweep(formula, alkali, n_intervals):
     for k in range(n + 1):
         x = round(amount * k / n, 6)  # exact endpoints, no arange float drift
         try:
-            r = _analyzer.charge_balance({**parsed, alkali: x}, return_format="dict")
+            r = charge_balance({**parsed, alkali: x})
         except Exception:
             r = None
         xs.append(x)
-        ys.append(_clean(r["final_charge"]) if r else None)
+        ys.append(_clean(r.final_charge) if r else None)
         # Variable oxidation states only (alkali metals, O and fixed states excluded)
         row = None
         if r:
@@ -169,7 +164,7 @@ def capacity(formula, alkali, interval=0.01, tol=1e-6):
     M is the molar mass of the starting (fully alkali-loaded) formula.
     """
     try:
-        parsed = _analyzer.parse_formula(str(formula).strip()) or {}
+        parsed = parse_formula(str(formula).strip()) or {}
     except Exception as e:
         return json.dumps({"ok": False, "error": f"Could not parse formula: {e}"})
     full = parsed.get(alkali, 0)
@@ -185,7 +180,7 @@ def capacity(formula, alkali, interval=0.01, tol=1e-6):
     for k in range(n_steps + 1):
         remaining = full * (1 - k / n_steps)  # includes 0 exactly, like np.linspace
         try:
-            r = _analyzer.charge_balance({**parsed, alkali: remaining}, return_format="object")
+            r = charge_balance({**parsed, alkali: remaining})
             charge = r.final_charge if r else float("nan")
         except Exception:
             charge = float("nan")

@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "approx"
+name = "approximate"
 version = "0.1.0"
 description = "Charge balancing and oxidation-state-aware feature engineering for inorganic compositions."
 requires-python = ">=3.10"
@@ -28,7 +28,7 @@ dev = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["approx*"]
+include = ["approximate*"]
 
 [tool.setuptools.package-data]
-approx = ["Data/*.csv"]
+approximate = ["Data/*.csv"]

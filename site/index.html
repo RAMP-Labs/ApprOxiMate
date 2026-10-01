@@ -246,7 +246,7 @@ const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = se
 let bridge = null;
 const call = (fn, ...args) => JSON.parse(bridge[fn](...args));
 
-// Deployed site has approx/ next to index.html; local dev (served from repo root) has it one level up.
+// Deployed site has approximate/ next to index.html; local dev (served from repo root) has it one level up.
 async function fetchFirst(paths) {
   for (const p of paths) {
     try { const r = await fetch(p); if (r.ok) return await r.text(); } catch (_) {}
@@ -262,16 +262,16 @@ async function initEngine() {
     await pyodide.loadPackage("pandas");
     setStatus("Loading ApprOxiMate…");
     const files = {
-      "approx/approximate.py": ["approx/approximate.py", "../approx/approximate.py"],
-      "approx/Data/fixed_ox_states.csv": ["approx/Data/fixed_ox_states.csv", "../approx/Data/fixed_ox_states.csv"],
-      "approx/Data/variable_ox_states_srps.csv": ["approx/Data/variable_ox_states_srps.csv", "../approx/Data/variable_ox_states_srps.csv"],
+      "approximate/core.py": ["approximate/core.py", "../approximate/core.py"],
+      "approximate/Data/fixed_ox_states.csv": ["approximate/Data/fixed_ox_states.csv", "../approximate/Data/fixed_ox_states.csv"],
+      "approximate/Data/variable_ox_states_srps.csv": ["approximate/Data/variable_ox_states_srps.csv", "../approximate/Data/variable_ox_states_srps.csv"],
       "bridge.py": ["bridge.py"],
     };
-    pyodide.FS.mkdirTree("/home/pyodide/approx/Data");
+    pyodide.FS.mkdirTree("/home/pyodide/approximate/Data");
     for (const [dest, srcs] of Object.entries(files)) {
       pyodide.FS.writeFile("/home/pyodide/" + dest, await fetchFirst(srcs));
     }
-    pyodide.FS.writeFile("/home/pyodide/approx/__init__.py", "");
+    pyodide.FS.writeFile("/home/pyodide/approximate/__init__.py", "");
     pyodide.runPython("import sys; sys.path.insert(0, '/home/pyodide')");
     bridge = pyodide.pyimport("bridge");
     setStatus("Ready", "ready");

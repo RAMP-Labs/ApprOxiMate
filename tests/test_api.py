@@ -4,7 +4,7 @@ import warnings
 import pandas as pd
 import pytest
 
-from approx.approximate import (
+from approximate import (
     BalanceResult, charge_balance, final_charge, oxidation_states, parse_formula,
 )
 
@@ -52,7 +52,7 @@ def test_unknown_element_returns_none():
 
 
 def test_old_return_format_still_works_but_warns():
-    from approx.approximate import ApprOXimate
+    from approximate.core import ChargeBalancer
     with pytest.warns(DeprecationWarning):
-        s = ApprOXimate().charge_balance("Fe3O4", return_format="string")
+        s = ChargeBalancer().charge_balance("Fe3O4", return_format="string")
     assert s == str(charge_balance("Fe3O4"))

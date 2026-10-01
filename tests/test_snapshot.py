@@ -24,7 +24,7 @@ def get_result(formula):
     or None if the formula can't be handled.
     """
     # ---- current API (update this block after the refactor) ----
-    from approx.approximate import charge_balance
+    from approximate import charge_balance
     r = charge_balance(formula)
     if r is None:
         return None

@@ -1,4 +1,6 @@
-# approximate class for charge balancing chemical formulas
+# Core charge-balancing engine for ApprOxiMate.
+# Users should call the functions at the bottom of this file (charge_balance etc.),
+# exposed via `from approximate import ...`. ChargeBalancer is the engine behind them.
 # This class reads a CSV file containing chemical data, parses chemical formulas, and balances charges.
 # It supports both fixed and variable oxidation states, and provides detailed debug logging when verbose mode is enabled.
 # Translated from the original C++ code into python with now added functionality for interactive use in Jupyter notebooks. see approximate_widgets.ipynb for interactive use.
@@ -90,10 +92,10 @@ class BalanceResult:
         states = ", ".join(f"{e.element}{e.oxidation_state:+d}:{e.quantity}" for e in self.elements)
         return f"BalanceResult([{states}], final_charge={self.final_charge}, is_balanced={self.is_balanced})"
 
-class ApprOXimate:
+class ChargeBalancer:
     def __init__(self, csv_file_path = None, fixed_ox_states_path= None, verbose=False, precision=6):
         """
-        Initialize the ApprOXimate class.
+        Initialize the ChargeBalancer class.
         
         Args:
             csv_file_path (str): Path to the CSV file containing chemical data
@@ -939,8 +941,8 @@ class ApprOXimate:
 
 @lru_cache(maxsize=None)
 def _engine(verbose=False, precision=6):
-    """One shared ApprOXimate per settings combination, so the CSVs load only once."""
-    return ApprOXimate(verbose=verbose, precision=precision)
+    """One shared ChargeBalancer per settings combination, so the CSVs load only once."""
+    return ChargeBalancer(verbose=verbose, precision=precision)
 
 
 def charge_balance(formula, verbose=False, precision=6):
