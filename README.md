@@ -33,7 +33,11 @@ Please cite this package.
 
 ## Installation
 
-Clone the repository and install it in editable mode:
+```bash
+pip install approximate
+```
+
+For development, clone the repository and install it in editable mode:
 
 ```bash
 git clone https://github.com/RAMP-Labs/ApprOxiMate.git
@@ -52,27 +56,29 @@ ApprOxiMate requires Python 3.10 or newer.
 ## Quick Start
 
 ```python
-from approx.approximate import ApprOXimate
+from approximate import charge_balance
 
-approx = ApprOXimate()
-
-result = approx.charge_balance("LiFePO4", return_format="string")
-print(result)
+r = charge_balance("Fe3O4")
+print(r)                # O:-2:4.0;Fe:2:1.0;Fe:3:2.0;FinalChargeBalance:0.0
+r.oxidation_states      # one entry per (element, oxidation state)
+r.final_charge          # 0.0
+r.is_balanced           # True
+r.to_dataframe()        # oxidation states as a table
+r.to_dict()             # everything as a dictionary
 ```
 
-Example output:
-
-```text
-Li:1:1.0;O:-2:4.0;Fe:2:1.0;P:5:1.0;FinalChargeBalance:0.0
-```
-
-The same result can be returned in different formats:
+Shortcuts when you only need one thing:
 
 ```python
-as_dict = approx.charge_balance("LiFePO4", return_format="dict")
-as_dataframe = approx.charge_balance("LiFePO4", return_format="dataframe")
-as_object = approx.charge_balance("LiFePO4", return_format="object")
+from approximate import oxidation_states, final_charge, parse_formula
+
+oxidation_states("LiFePO4")                     # list of states
+oxidation_states("LiFePO4", as_dataframe=True)  # as a DataFrame
+final_charge("NaMn0.5Ni0.5O2")                  # 0.0
+parse_formula("LiFePO4")                        # {'Li': 1.0, 'Fe': 1.0, 'P': 1.0, 'O': 4.0}
 ```
+
+Every function accepts `verbose=True` (step-by-step log) and `precision=`.
 
 ## Feature Engineering
 
@@ -81,20 +87,11 @@ one formula or many formulae:
 
 ```python
 import pandas as pd
-from mendeleev.fetch import fetch_table
+from approximate.feature_engineering import MaterialFeatureExtractor
 
-from approx.approximate import ApprOXimate
-from approx.feature_engineering import MaterialFeatureExtractor
-
-approx = ApprOXimate()
-ptable = fetch_table("elements")
-
-extractor = MaterialFeatureExtractor(
-    approx,
-    ptable,
-    mode="both",
-    ionic_radius_unit="pm",
-)
+# The periodic table is loaded from mendeleev automatically.
+# Pass your own as the first argument to reuse or customise it.
+extractor = MaterialFeatureExtractor(mode="both", ionic_radius_unit="pm")
 
 features = extractor.get_features("LiFePO4")
 feature_table = pd.DataFrame(
@@ -121,8 +118,6 @@ The transition-metal potential module is optional and can be enabled with:
 
 ```python
 extractor = MaterialFeatureExtractor(
-    approx,
-    ptable,
     enable_tm_potential=True,
     tm_cation="Na",
     tm_anion="O",
@@ -150,12 +145,12 @@ Notebooks with `exp0_` in the front show multiple ways to use ApprOxiMate outsid
 ## Project Layout
 
 ```text
-approx/
-  approximate.py              # Charge-balancing engine
+approximate/
+  core.py                     # Charge-balancing engine and public functions
   Data/                       # Oxidation-state and SRP lookup data
   feature_engineering/        # Descriptor modules and feature extractor
 notebooks/                    # Experiments, datasets, outputs, and analysis
-website_widget/               # Interactive notebook widget prototype
+site/                         # Web calculator (GitHub Pages, runs in-browser via Pyodide)
 tutorial_notebook.ipynb       # Introductory usage notebook
 ```
 

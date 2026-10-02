@@ -21,13 +21,13 @@ jobs:
       - uses: actions/checkout@v4
 
       # The site is plain static files: the UI from site/, plus the
-      # approx engine files that Pyodide loads in the browser.
+      # approximate engine files that Pyodide loads in the browser.
       - name: Stage site
         run: |
-          mkdir -p dist/approx/Data
+          mkdir -p dist/approximate/Data
           cp site/index.html site/bridge.py dist/
-          cp approx/approximate.py dist/approx/
-          cp approx/Data/*.csv dist/approx/Data/
+          cp approximate/core.py approximate/capacity.py dist/approximate/
+          cp approximate/Data/*.csv dist/approximate/Data/
           touch dist/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3

@@ -1,0 +1,332 @@
+{
+  "NaCl": {
+    "states": [
+      [
+        "Cl",
+        -1,
+        1.0
+      ],
+      [
+        "Na",
+        1,
+        1.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Cl:-1:1.0;Na:1:1.0;FinalChargeBalance:0.0"
+  },
+  "LiFePO4": {
+    "states": [
+      [
+        "Fe",
+        2,
+        1.0
+      ],
+      [
+        "Li",
+        1,
+        1.0
+      ],
+      [
+        "O",
+        -2,
+        4.0
+      ],
+      [
+        "P",
+        5,
+        1.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Li:1:1.0;O:-2:4.0;P:5:1.0;Fe:2:1.0;FinalChargeBalance:0.0"
+  },
+  "LiCoO2": {
+    "states": [
+      [
+        "Co",
+        3,
+        1.0
+      ],
+      [
+        "Li",
+        1,
+        1.0
+      ],
+      [
+        "O",
+        -2,
+        2.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Li:1:1.0;O:-2:2.0;Co:3:1.0;FinalChargeBalance:0.0"
+  },
+  "KMnO4": {
+    "states": [
+      [
+        "K",
+        1,
+        1.0
+      ],
+      [
+        "Mn",
+        7,
+        1.0
+      ],
+      [
+        "O",
+        -2,
+        4.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "K:1:1.0;O:-2:4.0;Mn:7:1.0;FinalChargeBalance:0.0"
+  },
+  "Li2MnO3": {
+    "states": [
+      [
+        "Li",
+        1,
+        2.0
+      ],
+      [
+        "Mn",
+        4,
+        1.0
+      ],
+      [
+        "O",
+        -2,
+        3.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Li:1:2.0;O:-2:3.0;Mn:4:1.0;FinalChargeBalance:0.0"
+  },
+  "Fe3O4": {
+    "states": [
+      [
+        "Fe",
+        2,
+        1.0
+      ],
+      [
+        "Fe",
+        3,
+        2.0
+      ],
+      [
+        "O",
+        -2,
+        4.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "O:-2:4.0;Fe:2:1.0;Fe:3:2.0;FinalChargeBalance:0.0"
+  },
+  "Na0.67Ni0.33Mn0.67O2": {
+    "states": [
+      [
+        "Mn",
+        3,
+        0.01
+      ],
+      [
+        "Mn",
+        4,
+        0.66
+      ],
+      [
+        "Na",
+        1,
+        0.67
+      ],
+      [
+        "Ni",
+        2,
+        0.33
+      ],
+      [
+        "O",
+        -2,
+        2.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Na:1:0.67;O:-2:2.0;Ni:2:0.33;Mn:3:0.01;Mn:4:0.66;FinalChargeBalance:0.0"
+  },
+  "NaMn0.5Ni0.5O2": {
+    "states": [
+      [
+        "Mn",
+        4,
+        0.5
+      ],
+      [
+        "Na",
+        1,
+        1.0
+      ],
+      [
+        "Ni",
+        2,
+        0.5
+      ],
+      [
+        "O",
+        -2,
+        2.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Na:1:1.0;O:-2:2.0;Ni:2:0.5;Mn:4:0.5;FinalChargeBalance:0.0"
+  },
+  "NaNi1/3Fe1/3Mn1/3O2": {
+    "states": [
+      [
+        "Fe",
+        3,
+        0.333
+      ],
+      [
+        "Mn",
+        4,
+        0.333
+      ],
+      [
+        "Na",
+        1,
+        1.0
+      ],
+      [
+        "Ni",
+        2,
+        0.333
+      ],
+      [
+        "O",
+        -2,
+        2.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Na:1:1.0;O:-2:2.0;Fe:3:0.333;Mn:4:0.333;Ni:2:0.333;FinalChargeBalance:0.0"
+  },
+  "Na2/3Mn2/3Ni1/3O2": {
+    "states": [
+      [
+        "Mn",
+        4,
+        0.667
+      ],
+      [
+        "Na",
+        1,
+        0.667
+      ],
+      [
+        "Ni",
+        2,
+        0.333
+      ],
+      [
+        "O",
+        -2,
+        2.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Na:1:0.667;O:-2:2.0;Ni:2:0.333;Mn:4:0.667;FinalChargeBalance:0.0"
+  },
+  "CuZn": {
+    "states": [
+      [
+        "Cu",
+        0,
+        1.0
+      ],
+      [
+        "Zn",
+        0,
+        1.0
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Cu:0:1.0;Zn:0:1.0;FinalChargeBalance:0.0"
+  },
+  "Fe0.5Ni0.5": {
+    "states": [
+      [
+        "Fe",
+        0,
+        0.5
+      ],
+      [
+        "Ni",
+        0,
+        0.5
+      ]
+    ],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "Fe:0:0.5;Ni:0:0.5;FinalChargeBalance:0.0"
+  },
+  "Na3O": {
+    "states": [
+      [
+        "Na",
+        1,
+        3.0
+      ],
+      [
+        "O",
+        -2,
+        1.0
+      ]
+    ],
+    "final_charge": 1.0,
+    "is_balanced": false,
+    "string": "Na:1:3.0;O:-2:1.0;FinalChargeBalance:1.0"
+  },
+  "": {
+    "states": [],
+    "final_charge": 0.0,
+    "is_balanced": true,
+    "string": "FinalChargeBalance:0.0"
+  },
+  "Xx2O": null,
+  "Ca(OH)2": {
+    "states": [
+      [
+        "Ca",
+        2,
+        1.0
+      ],
+      [
+        "H",
+        1,
+        1.0
+      ],
+      [
+        "O",
+        -2,
+        1.0
+      ]
+    ],
+    "final_charge": 1.0,
+    "is_balanced": false,
+    "string": "Ca:2:1.0;H:1:1.0;O:-2:1.0;FinalChargeBalance:1.0"
+  }
+}

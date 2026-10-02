@@ -1,4 +1,6 @@
-# approximate class for charge balancing chemical formulas
+# Core charge-balancing engine for ApprOxiMate.
+# Users should call the functions at the bottom of this file (charge_balance etc.),
+# exposed via `from approximate import ...`. ChargeBalancer is the engine behind them.
 # This class reads a CSV file containing chemical data, parses chemical formulas, and balances charges.
 # It supports both fixed and variable oxidation states, and provides detailed debug logging when verbose mode is enabled.
 # Translated from the original C++ code into python with now added functionality for interactive use in Jupyter notebooks. see approximate_widgets.ipynb for interactive use.
@@ -16,6 +18,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Union, Optional
 
 import os
+import warnings
+from functools import lru_cache
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(PACKAGE_DIR, "Data")
 
@@ -30,7 +34,15 @@ class ElementState:
     
 @dataclass
 class BalanceResult:
-    """Structured result from charge balancing"""
+    """Result of charge balancing a formula.
+
+    Attributes:
+        oxidation_states: list of ElementState, one per (element, oxidation state).
+            An element split across two states (e.g. Fe2+/Fe3+ in Fe3O4) appears twice.
+        final_charge: residual charge after balancing (0.0 when balanced).
+        is_balanced: True if final_charge is zero within precision.
+        formula_string: compact string, e.g. "O:-2:4.0;Fe:2:1.0;Fe:3:2.0;FinalChargeBalance:0.0".
+    """
     elements: List[ElementState]
     final_charge: float
     formula_string: str
@@ -67,14 +79,23 @@ class BalanceResult:
             })
         return pd.DataFrame(data)
     
+    @property
+    def oxidation_states(self) -> List[ElementState]:
+        """The oxidation states only (same list as .elements)."""
+        return self.elements
+
     def __str__(self) -> str:
-        """String representation showing the balanced equation"""
+        """Compact string, identical to the old return_format='string' output."""
         return self.formula_string
 
-class ApprOXimate:
+    def __repr__(self) -> str:
+        states = ", ".join(f"{e.element}{e.oxidation_state:+d}:{e.quantity}" for e in self.elements)
+        return f"BalanceResult([{states}], final_charge={self.final_charge}, is_balanced={self.is_balanced})"
+
+class ChargeBalancer:
     def __init__(self, csv_file_path = None, fixed_ox_states_path= None, verbose=False, precision=6):
         """
-        Initialize the ApprOXimate class.
+        Initialize the ChargeBalancer class.
         
         Args:
             csv_file_path (str): Path to the CSV file containing chemical data
@@ -434,7 +455,7 @@ class ApprOXimate:
         
         elif return_format == 'object':
             elements = []
-            for element in sorted(formula.keys()):
+            for element in formula.keys():
                 elements.append(ElementState(
                     element=element,
                     oxidation_state=0,
@@ -459,17 +480,27 @@ class ApprOXimate:
         else:
             raise ValueError(f"Unknown return_format: {return_format}")
     
-    def charge_balance(self, formula, return_format='string'):
+    def charge_balance(self, formula, return_format=None):
         """
-        Main charge balancing function with multiple output formats.
-        
+        Charge balance a formula.
+
         Args:
             formula: Chemical formula string or parsed formula dict
-            return_format: Output format - 'string', 'dict', 'object', or 'dataframe'
-        
+            return_format: DEPRECATED. Leave as None to get a BalanceResult.
+                Old values ('string', 'dict', 'object', 'dataframe') still work
+                for now but will be removed.
+
         Returns:
-            Various formats based on return_format parameter
+            BalanceResult (or None if the formula can't be handled).
         """
+        if return_format is None:
+            return_format = 'object'
+        else:
+            warnings.warn(
+                "return_format is deprecated: charge_balance() now returns a BalanceResult. "
+                "Use str(result), result.to_dict() or result.to_dataframe() instead.",
+                DeprecationWarning, stacklevel=2,
+            )
         # Parse formula if it's a string
         if isinstance(formula, str):
             parsed_formula = self.parse_formula(formula)
@@ -640,7 +671,7 @@ class ApprOXimate:
         final_red = balance_result['final_red']
         
         # Add fixed elements
-        for element in sorted(formula.keys()):
+        for element in formula.keys():
             if element in self.list2:
                 elements.append(ElementState(
                     element=element,
@@ -651,7 +682,7 @@ class ApprOXimate:
                 ))
         
         # Add variable elements
-        for element in sorted(formula.keys()):
+        for element in formula.keys():
             if element in element_states and element != element_with_final_lowest_srp:
                 current_state = element_states[element]['current_state']
                 elements.append(ElementState(
@@ -902,3 +933,44 @@ class ApprOXimate:
         self.log(f"Final result: {result}")
         
         return result
+
+
+# ---------------------------------------------------------------------------
+# Public functions: the intended way to use the package.
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=None)
+def _engine(verbose=False, precision=6):
+    """One shared ChargeBalancer per settings combination, so the CSVs load only once."""
+    return ChargeBalancer(verbose=verbose, precision=precision)
+
+
+def charge_balance(formula, verbose=False, precision=6):
+    """Charge balance a formula and return the full BalanceResult.
+
+    >>> r = charge_balance("Fe3O4")
+    >>> r.final_charge, r.is_balanced
+    (0.0, True)
+    >>> str(r)
+    'O:-2:4.0;Fe:2:1.0;Fe:3:2.0;FinalChargeBalance:0.0'
+    """
+    return _engine(verbose, precision).charge_balance(formula)
+
+
+def oxidation_states(formula, as_dataframe=False, verbose=False, precision=6):
+    """Return only the oxidation states: a list of ElementState, or a DataFrame."""
+    result = charge_balance(formula, verbose=verbose, precision=precision)
+    if result is None:
+        return None
+    return result.to_dataframe() if as_dataframe else result.oxidation_states
+
+
+def final_charge(formula, verbose=False, precision=6):
+    """Return only the residual charge after balancing (0.0 when balanced)."""
+    result = charge_balance(formula, verbose=verbose, precision=precision)
+    return None if result is None else result.final_charge
+
+
+def parse_formula(formula):
+    """Parse a formula string into {element: amount}."""
+    return _engine().parse_formula(formula)

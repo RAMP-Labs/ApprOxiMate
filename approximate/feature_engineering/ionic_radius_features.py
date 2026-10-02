@@ -1,4 +1,4 @@
-# approx/feature_engineering/ionic_radius.py
+# approximate/feature_engineering/ionic_radius_features.py
 
 from .base import FeatureModule
 from .registry import register_feature

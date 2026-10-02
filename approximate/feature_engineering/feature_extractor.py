@@ -8,8 +8,7 @@ class MaterialFeatureExtractor:
 
     def __init__(
         self,
-        approx,
-        ptable,
+        ptable=None,
         mode="both",
         modules="all",
         enable_tm_potential=False,
@@ -17,11 +16,12 @@ class MaterialFeatureExtractor:
         tm_anion="O",
         ionic_radius_unit="pm",
         element_property_names=None,
+        balancer=None,
     ):
         """
         Args:
-            approx: ApprOXimate instance
-            ptable: periodic table dataframe
+            ptable: periodic table dataframe. If None, loaded with
+                mendeleev.fetch.fetch_table("elements").
             mode: "all", "var", "both"
             modules: list of module names OR "all"
             enable_tm_potential: enable TM-specific feature module?
@@ -30,7 +30,16 @@ class MaterialFeatureExtractor:
             ionic_radius_unit: "pm" or "angstrom" for ionic-radius-based features
             element_property_names: optional list of elemental property names. Use
                 None for defaults, or an empty list to skip ElementPropertyModule.
+            balancer: optional ChargeBalancer with custom settings. If None, the
+                package's shared default is used.
         """
+        if ptable is None:
+            from mendeleev.fetch import fetch_table
+            ptable = fetch_table("elements")
+        if balancer is None:
+            from ..core import _engine
+            balancer = _engine()
+        approx = balancer
 
         self.approx = approx
         self.ptable = ptable
