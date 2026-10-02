@@ -21,7 +21,14 @@ FARADAY = 96485.33212
 
 ALKALI_METALS = ("Li", "Na", "K", "Rb", "Cs")
 
-# Standard atomic weights (g/mol), matching mendeleev (checked in tests).
+# Standard atomic weights (g/mol): IUPAC/CIAAW 2013 values with the 2015
+# ytterbium revision, as distributed by the mendeleev package.
+#   J. Meija et al., "Atomic weights of the elements 2013 (IUPAC Technical
+#   Report)", Pure Appl. Chem. 88, 265-291 (2016). doi:10.1515/pac-2015-0305
+#   CIAAW, "Standard atomic weight of ytterbium revised", Chem. Int. 37(5-6),
+#   26 (2015). doi:10.1515/ci-2015-0512
+# Values are kept identical to mendeleev (checked in tests/test_capacity.py) so
+# that capacities agree with the feature engineering, which uses mendeleev.
 ATOMIC_MASS = {
     "H": 1.008, "He": 4.002602, "Li": 6.94, "Be": 9.0121831, "B": 10.81, "C": 12.011,
     "N": 14.007, "O": 15.999, "F": 18.998403163, "Ne": 20.1797, "Na": 22.98976928,
