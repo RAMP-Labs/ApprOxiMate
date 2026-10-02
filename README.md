@@ -23,19 +23,31 @@ descriptors.
 - Includes example notebooks for featurisation, exploratory analysis, model
   training, and result assessment.
 
-## Standard Reduction Potential Data
-NIST dataset was used to collected SRP values used within the variable_ox_states_srps.csv 
-
-S. G. Bratsch, Standard Electrode Potentials and Temperature Coefficients in Water at 298.15 K, Journal of Physical and Chemical Reference Data, 1989, 18, 1–21.
-
 ## Citation
 Please cite this package.
+
+## Try it in your browser
+
+**No installation needed:** [ramp-labs.github.io/ApprOxiMate](https://ramp-labs.github.io/ApprOxiMate/)
+
+If you just want answers rather than code, the web calculator does it all in your browser:
+
+| Tab | What it does |
+|---|---|
+| **Single composition** | Type a formula like `Na0.67Ni0.33Mn0.67O2` and get the oxidation state of every element |
+| **Batch from file** | Upload a CSV or Excel file of formulas and download the results |
+| **Charge balance plot** | See how charge balance changes as alkali is removed |
+| **Capacity** | Theoretical vs charge-balance-adjusted capacity (mAh/g) |
+
+Everything runs locally in your browser using [Pyodide](https://pyodide.org), so your compositions never leave your computer.
+
 
 ## Installation
 
 ```bash
 pip install approximate
 ```
+[PyPI/approximate](https://pypi.org/project/approximate/)
 
 For development, clone the repository and install it in editable mode:
 
@@ -153,6 +165,11 @@ notebooks/                    # Experiments, datasets, outputs, and analysis
 site/                         # Web calculator (GitHub Pages, runs in-browser via Pyodide)
 tutorial_notebook.ipynb       # Introductory usage notebook
 ```
+
+## Standard Reduction Potential Data
+NIST dataset was used to collected SRP values used within the variable_ox_states_srps.csv 
+
+S. G. Bratsch, Standard Electrode Potentials and Temperature Coefficients in Water at 298.15 K, Journal of Physical and Chemical Reference Data, 1989, 18, 1–21.
 
 ### Data Cleanup Note
 An earlier version of Parsed_Data.csv contained 2,302 raw entries. The current Parsed_Data.csv now has 2,299 raw entries as 3 formula were lost when transferred over to ICSD_CrystStrucData.csv. This 2,299 dataset was then preprocessed and cleaned resulting in a dataset of 2,283 entires as seen in `notebooks/exp1_featurisation.ipynb` these 16 formulas were removed due to numerical precision limits encountered when parsing and balancing large formula units and therfore were unable to be charge balanced successfully. 

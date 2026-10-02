@@ -62,6 +62,7 @@ dev = [
 Homepage = "https://github.com/RAMP-Labs/ApprOxiMate"
 Source = "https://github.com/RAMP-Labs/ApprOxiMate"
 Issues = "https://github.com/RAMP-Labs/ApprOxiMate/issues"
+Website = "https://ramp-labs.github.io/ApprOxiMate/"
 
 [tool.setuptools.dynamic]
 version = { attr = "approximate.__version__" }
