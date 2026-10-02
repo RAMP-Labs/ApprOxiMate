@@ -1,0 +1,60 @@
+name: Publish to PyPI
+
+# Runs when you publish a GitHub Release (e.g. tag v0.1.0)
+on:
+  release:
+    types: [published]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install ".[all]" pytest
+      - run: pytest -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check release tag matches package version
+        run: |
+          VERSION=$(python -c "import re; print(re.search(r'__version__ = \"(.+?)\"', open('approximate/__init__.py').read()).group(1))")
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag: $TAG   __version__: $VERSION"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Release tag v$TAG does not match __version__ $VERSION"
+            exit 1
+          fi
+
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # trusted publishing: no API token needed
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
