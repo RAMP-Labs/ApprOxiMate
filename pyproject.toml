@@ -1,38 +1,76 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "approximate"
-version = "0.1.0"
-description = "Charge balancing and oxidation-state-aware feature engineering for inorganic compositions."
+dynamic = ["version"]
+description = "Composition-only mixed oxidation state estimation, charge balancing and capacity prediction for inorganic materials."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [
-  { name = "Fay Timen" }
+  { name = "Fay Timen", email = "fay.a.timen@gmail.com" },
+  { name = "Thomas E. Ashton", email = "t.ashton@ucl.ac.uk" },
+]
+keywords = [
+  "oxidation state",
+  "charge balance",
+  "materials informatics",
+  "featurisation",
+  "battery",
+  "cathode",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
   "numpy>=1.24",
   "pandas>=2.0",
-  "mendeleev>=0.17",
-  "pymatgen>=2024.0.0",
 ]
 
 [project.optional-dependencies]
+features = [
+  "mendeleev>=0.17",
+  "pymatgen>=2024.0.0",
+]
 plot = [
   "matplotlib>=3.7",
 ]
+all = [
+  "approximate[features,plot]",
+]
 dev = [
-  "matplotlib>=3.7",
-  "jupyter",
+  "approximate[all]",
   "pytest>=8",
+  "build",
+  "twine",
+  "jupyter",
   "tqdm",
 ]
 
-[tool.setuptools]
-include-package-data = true
+[project.urls]
+Homepage = "https://github.com/RAMP-Labs/ApprOxiMate"
+Source = "https://github.com/RAMP-Labs/ApprOxiMate"
+Issues = "https://github.com/RAMP-Labs/ApprOxiMate/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "approximate.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["approximate*"]
 
 [tool.setuptools.package-data]
 approximate = ["Data/*.csv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
