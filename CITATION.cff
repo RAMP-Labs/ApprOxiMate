@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Timen"
+  given-names: "Fay"
+  orcid: "https://orcid.org/0009-0005-2981-1864"
+- family-names: "Ashton"
+  given-names: "Thomas"
+  orcid: "https://orcid.org/0000-0001-6260-1512"
+title: "ApprOxiMate"
+version: 1.0.0
+doi: 10.5281/zenodo.1234
+date-released: 2026-10-15
+url: "https://github.com/RAMP-Labs/ApprOxiMate"
